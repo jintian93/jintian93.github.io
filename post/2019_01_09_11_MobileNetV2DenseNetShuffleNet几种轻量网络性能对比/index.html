@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>MobileNetV2,DenseNet,ShuffleNet几种轻量网络性能对比 | 金天的个人博客</title>
+    <meta property="og:title" content="MobileNetV2,DenseNet,ShuffleNet几种轻量网络性能对比 - 金天的个人博客">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2019-01-09T11:15:19&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2019-01-09T11:15:19&#43;08:00'>
+        
+    <meta name="Keywords" content="golang,go语言,go语言笔记,金天,人工智能,java,android,博客,项目管理,python,软件架构,公众号,小程序,AI项目管理">
+    <meta name="description" content="MobileNetV2,DenseNet,ShuffleNet几种轻量网络性能对比">
+        
+    <meta name="author" content="金天">
+    <meta property="og:url" content="https://jintian93.github.io/post/2019_01_09_11_MobileNetV2DenseNetShuffleNet%E5%87%A0%E7%A7%8D%E8%BD%BB%E9%87%8F%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "238864368",
+        enable_page_level_ads: true
+    });
+    </script>
+    
+
+
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://jintian93.github.io">
+                        金天的个人博客
+                    </a>
+                
+                <p class="description">专注于AI算法研发与落地应用，无人驾驶，模型压缩与加速，边缘端侧推理，AI项目管理与核心技术输出，腾讯自动驾驶专家</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://jintian93.github.io">首页</a>
+                    
+                    <a  href="https://jintian93.github.io/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://jintian93.github.io/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于">关于</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于我">关于我</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#mobilenetv1">MobileNetV1</a></li>
+    <li><a href="#shufflenetv1">ShuffleNetV1</a></li>
+    <li><a href="#mobilenetv2">MobileNetV2</a></li>
+    <li><a href="#shufflenet-v2">ShuffleNet V2</a></li>
+    <li><a href="#heading">总结</a></li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if(leftPos<220){
+                postToc.css({"width":leftPos-10,"margin-left":(0-leftPos)})
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">MobileNetV2,DenseNet,ShuffleNet几种轻量网络性能对比</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年1月9日
+        </date>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>本文介绍 MobileNetV2,DenseNet,ShuffleNet几种轻量网络性能对比</p>
+<!-- raw HTML omitted -->
+<h1 id="mobilenetv2densenetshufflenet">MobileNetV2,DenseNet,ShuffleNet几种轻量网络性能对比</h1>
+<blockquote>
+<p>This article was original written by Jin Tian, welcome re-post, first come with <a href="https://jinfagang.github.io">https://jinfagang.github.io</a> . but please keep this copyright info, thanks, any question could be asked via wechat: <code>jintianiloveu</code></p>
+</blockquote>
+<p>这篇文章简要的对比一下常用的轻量网络之间的性能差别。在本文发表的时候，ShuffelNet都已经有V2版本了。总的来说，不对比Mobilenetv1, shuffelnet是在mobilenetv1版本上的改进，其实就是添加了一个group convolution，而Mobilenetv2是在v1的版本基础之上，先从网络结构加速的MobileNetv1开始说起。</p>
+<h2 id="mobilenetv1">MobileNetV1</h2>
+<p>在v1,版本，最简单直接的两个操作就是深度优化的卷积滤波器，以及点优化的卷积，听起来牛逼，实际上insights就两个：</p>
+<ul>
+<li>depth-wise 的filter，以前都是直接进行卷积运算，对每一个通道进行比如3x3卷积运算，现在是先进行resize，先降低尺度，然后在使用1x1卷积进行通道扩充。</li>
+<li>1x1卷积的提出，说白了就是扩充通道，不改变尺度。</li>
+</ul>
+<p>好像就这两个东西，那么v2版本有啥提升呢？先不说v2,根据网络的前后顺序，接下来说一下shufflenet。</p>
+<h2 id="shufflenetv1">ShuffleNetV1</h2>
+<p>其实shuffelnetv1说实话，就是在mobilenetv1基础上，加了一个group操作。关于这个Group卷积，在之前我有过一篇文章详细论述。其实就是将整个channel，拆分为几组，分别进行卷及计算，而ShuffleNet在group之间进行了一个打乱的操作，提升了特征的融合性能。</p>
+<h2 id="mobilenetv2">MobileNetV2</h2>
+<p>在MobileNetV2中，最重要的就是反向残差，Inverted Residual, 这个是在v1中没有的，另外一个是线性瓶颈，Linear Bottlenecks, 对于反向残差，其实没有设么好理解的，就是将ResidualNet中的残差连接方式，进行了反向。线性的瓶颈，这个线性瓶颈到底起来什么作用，其实有点像采用这个东西，代替了ReLU。此处似乎需要思考一个问题：<strong>为什么卷积要用ReLU</strong> 作为激活函数？为什么呢?</p>
+<h2 id="shufflenet-v2">ShuffleNet V2</h2>
+<p>这是ShuffleNet的第二个版本。这个论文分析了，通过FLOPS来衡量一个网络计算速度的指标是不可学得，原因是，卷积运算在不同的平台都有不同的优化的，比如CUDA可以并行计算多个卷积操作，其中这个FLOPS还只是包含了浮点数的计算时间，类似的内存访问损失似乎没有加入进来。于是这篇论文给出了设计高速轻量网络的几条guidelines：</p>
+<ul>
+<li>卷积操作，输入输出channel一致可以使得内存访问成本最低;</li>
+<li>过度的群卷积会增加mac访问成本;</li>
+<li>网络的碎片化会降低网络的并行度;</li>
+<li>元素级运算，比如add，relu，虽然其flops几乎没有，但是它的内存访问时间不忽略</li>
+</ul>
+<p>然后根据以上四条准则，设计除了shufflenetv2的结构：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/6673934-4b592d79a18713f8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/957/format/webp" alt=""></p>
+<p>也就是做到：1) 保证每个conv输入channels和输出channels数量一致，没有使用群卷积，采用channels split操作，最后连接没有采用add和relu，而是concat，降低mac消耗。可以看到ShuffleNetV2在速度和精度上，似乎都比MobileNetV2要强。尤其是在ARM上的运行速度，很快。</p>
+<h2 id="heading">总结</h2>
+<p>最后总结一下，这些轻量级的网络中，似乎最后ShuffleNetV2是最先进的，它几乎融合了各家特长，并且将速度做到了极致。有时间得把ShuffelNetV2用起来，看看实际应用场景下的表现如何。</p>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://jintian93.github.io">金天</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://jintian93.github.io/post/2019_01_09_11_MobileNetV2DenseNetShuffleNet%E5%87%A0%E7%A7%8D%E8%BD%BB%E9%87%8F%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/">https://jintian93.github.io/post/2019_01_09_11_MobileNetV2DenseNetShuffleNet%E5%87%A0%E7%A7%8D%E8%BD%BB%E9%87%8F%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/2019_01_03_14_%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87SuperResolution%E6%89%8B%E8%AE%B0%E4%B8%80/">超分辨率SuperResolution手记一</a></li>
+        
+        <li><a href="/post/2019_01_03_09_%E4%BB%8Eshuffleseg%E4%BB%A5%E5%8F%8A%E5%88%86%E7%BB%84%E5%8D%B7%E7%A7%AF%E8%AF%B4%E8%B5%B7/">从shuffleseg以及分组卷积说起</a></li>
+        
+        <li><a href="/about/">关于我</a></li>
+        
+        <li><a href="/post/2018_12_02_17_ROS%E6%AD%A6%E5%8A%9F%E7%A7%98%E7%B1%8D/">ROS武功秘籍</a></li>
+        
+        <li><a href="/post/2018_11_29_18_ndt%E9%85%8D%E5%87%86%E5%BB%BA%E5%9B%BE%E4%B8%8E%E6%97%A0%E4%BA%BA%E8%BD%A6%E5%AE%9A%E4%BD%8D/">ndt配准，建图，与无人车定位</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "jintian93/coment-for-blog"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://jintian93.github.io/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://jintian93.github.io">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_30_16_DETR%E4%BD%BF%E7%94%A8Transformer%E5%81%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E7%9A%84%E6%A8%A1%E5%9E%8B%E8%BF%8E%E6%9D%A5%E4%BA%860.2%E7%89%88%E6%9C%AC%E7%9A%84%E5%8F%91%E5%B8%83/" title="DETR使用Transformer做目标检测的模型迎来了0.2版本的发布">DETR使用Transformer做目标检测的模型迎来了0.2版本的发布</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_23_15_%E8%81%8A%E4%B8%80%E8%81%8A%E4%BB%8A%E5%B9%B4%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E9%A2%86%E5%9F%9F%E7%9A%84%E8%BF%9B%E5%B1%95%E5%92%8C%E6%9C%AA%E6%9D%A5%E5%B1%95%E6%9C%9B/" title="聊一聊今年实例分割领域的进展和未来展望">聊一聊今年实例分割领域的进展和未来展望</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_19_11_YoloV5%E7%9A%84TensorRT%E5%8A%A0%E9%80%9F%E5%AE%9E%E7%8E%B049FPSmAP40&#43;/" title="YoloV5的TensorRT加速实现49FPS，mAP40&#43;!">YoloV5的TensorRT加速实现49FPS，mAP40&#43;!</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_11_17_%E4%BD%BF%E7%94%A8mmdetection2.0%E5%AE%9E%E7%8E%B0SOLOV2-%E5%85%A8%E6%96%B0%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%A1%86%E6%9E%B6/" title="使用mmdetection2.0实现SOLOV2-全新的实例分割框架">使用mmdetection2.0实现SOLOV2-全新的实例分割框架</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_10_16_%E9%87%8D%E7%A3%85%E8%85%BE%E8%AE%AF%E4%BC%98%E5%9B%BE%E5%BC%80%E6%BA%90%E6%9C%80%E6%96%B0%E5%89%8D%E7%AB%AF%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6TNN/" title="重磅！腾讯优图开源最新前端推理框架TNN！">重磅！腾讯优图开源最新前端推理框架TNN！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_09_12_%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0CUDA%E7%BC%96%E7%A8%8B%E5%B9%B2%E8%B4%A7-kernel%E7%9A%84%E7%BC%96%E5%86%99%E5%92%8C%E8%B0%83%E7%94%A8/" title="深度学习CUDA编程干货-kernel的编写和调用">深度学习CUDA编程干货-kernel的编写和调用</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_03_11_%E5%B9%B2%E8%B4%A7%E4%B8%80%E6%96%87%E6%8E%8C%E6%8F%A1Protobuf%E6%89%80%E6%9C%89%E8%AF%AD%E8%A8%80%E6%89%80%E6%9C%89%E7%94%A8%E6%B3%95%E5%BF%AB%E6%94%B6%E8%97%8F/" title="干货！一文掌握Protobuf所有语言所有用法，快收藏！">干货！一文掌握Protobuf所有语言所有用法，快收藏！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_30_15_PolyYolo%E5%BC%80%E6%BA%90Yolo%E4%B9%9F%E8%83%BD%E5%81%9A%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%A3%80%E6%B5%8BmAP%E6%8F%90%E5%8D%8740/" title="PolyYolo开源！Yolo也能做实例分割，检测mAP提升40%！">PolyYolo开源！Yolo也能做实例分割，检测mAP提升40%！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_30_10_%E9%9C%87%E6%83%8AYoloV4%E8%BF%98%E6%B2%A1%E6%9C%89%E9%80%80%E7%83%ADYoloV5%E5%B7%B2%E7%BB%8F%E5%8F%91%E5%B8%83/" title="震惊！YoloV4还没有退热，YoloV5已经发布！">震惊！YoloV4还没有退热，YoloV5已经发布！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_28_14_DETR%E8%AF%A6%E8%A7%A3NLP%E9%87%8C%E9%9D%A2%E7%9A%84Transformer%E4%B9%9F%E8%83%BD%E5%81%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" title="DETR详解:NLP里面的Transformer也能做目标检测？">DETR详解:NLP里面的Transformer也能做目标检测？</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="http://manaai.cn" title="【2020】中秋特惠，神力平台终身会员优惠85折！立即开通" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1_rYHo7P2gK0jSZPxXXacQpXa-690-388.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="助力产业智慧升级，云服务器首年88元起，更有千元代金券礼包免费领！" target="_blank" style="color:red">
+                
+                    <img src="https://upload-dianshi-1255598498.file.myqcloud.com/345-7c71532bd4935fbdd9a67c1a71e577b1767b805c.200%E7%89%88%E6%9C%ACB.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="【渠道专享低折扣】11月特惠 限时2折" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1hblJl7Y2gK0jSZFgXXc5OFXa-750-400.jpg">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="http://manaai.cn" title="神力AI平台">神力AI平台</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="http://zhuanlan.zhihu.com/ai-man" title="【知乎专栏】人工智能从入门到逆天杀神">Android Gradle权威指南</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://jintian93.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+    <footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://jintian93.github.io">金天的个人博客 By 金天</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+    <script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+</body>
+
+</html>

@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>重磅！腾讯优图开源最新前端推理框架TNN！ | 金天的个人博客</title>
+    <meta property="og:title" content="重磅！腾讯优图开源最新前端推理框架TNN！ - 金天的个人博客">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2020-06-10T16:11:01&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2020-06-10T16:11:01&#43;08:00'>
+        
+    <meta name="Keywords" content="golang,go语言,go语言笔记,金天,人工智能,java,android,博客,项目管理,python,软件架构,公众号,小程序,AI项目管理">
+    <meta name="description" content="重磅！腾讯优图开源最新前端推理框架TNN！">
+        
+    <meta name="author" content="金天">
+    <meta property="og:url" content="https://jintian93.github.io/post/2020_06_10_16_%E9%87%8D%E7%A3%85%E8%85%BE%E8%AE%AF%E4%BC%98%E5%9B%BE%E5%BC%80%E6%BA%90%E6%9C%80%E6%96%B0%E5%89%8D%E7%AB%AF%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6TNN/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "238864368",
+        enable_page_level_ads: true
+    });
+    </script>
+    
+
+
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://jintian93.github.io">
+                        金天的个人博客
+                    </a>
+                
+                <p class="description">专注于AI算法研发与落地应用，无人驾驶，模型压缩与加速，边缘端侧推理，AI项目管理与核心技术输出，腾讯自动驾驶专家</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://jintian93.github.io">首页</a>
+                    
+                    <a  href="https://jintian93.github.io/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://jintian93.github.io/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于">关于</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于我">关于我</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#tnnbenchmark">TNN的性能benchmark</a></li>
+    <li><a href="#tnn-1">TNN支持的算子</a></li>
+    <li><a href="#tnn-2">TNN上手</a></li>
+    <li><a href="#heading">结论</a></li>
+    <li><a href="#end">End</a></li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if(leftPos<220){
+                postToc.css({"width":leftPos-10,"margin-left":(0-leftPos)})
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">重磅！腾讯优图开源最新前端推理框架TNN！</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2020年6月10日
+        </date>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>本文介绍 重磅！腾讯优图开源最新前端推理框架TNN！</p>
+<!-- raw HTML omitted -->
+<h1 id="tnn">重磅！腾讯优图开源最新前端推理框架TNN！</h1>
+<blockquote>
+<p>本文由林大佬原创，转载请注明出处，来自腾讯、阿里等一线AI算法工程师组成的QQ交流群欢迎你的加入: 1037662480</p>
+</blockquote>
+<p>来了来了，终于来了。就在今天，腾讯优图团队开源了全新升级的轻量级深度学习前端推理框架TNN。</p>
+<p><img src="https://github.com/Tencent/TNN/raw/master/TNN.png" alt=""></p>
+<p>从昨天发布海报预热到现在，终于可以看到源码了。我们趁着这代码刚release，赶紧测试了一波。在这之前，我们还是预览一遍这个框架和ncnn，mnn等的不同，它的优点，架构上的改变，同时看看它是否能取代ncnn生成下一代高性能的移动端轻量级推理库。</p>
+<p>首先，这个框架实际上是优图内部的Rapidnet和ncnn框架基础之上，一步一步的发展而来，在这个时间点发布，也恰好说明，深度学习落地又到了一个新的时间节点，后浪们得继续准备好发力了。</p>
+<p>先跑开TNN和ncnn等的性能对比不谈，不如看看它的应用先。TNN目前已经在手机QQ，微视，P图等应用中大规模落地使用，主要的特点包括：</p>
+<ul>
+<li>计算优化
+<ul>
+<li>针对不同架构在硬件指令发射、吞吐、延迟、缓存带宽、缓存延迟、寄存器数量等特点，深度优化底层算子，极致利用硬件算力</li>
+<li>主流硬件平台(CPU: ARMv7， ARMv8， GPU: Mali， Adreno， Apple) 深度调优</li>
+<li>CNN 核心卷积运算通过 Winograd，Tile-GEMM， Direct Conv 等多种算法实现，保证不同参数、计算尺度下高效计算</li>
+<li>Op 融合：离线分析网络计算图，多个小 Op（计算量小、功能较简单）融合运算，减少反复内存读取、kernel 启动等开销</li>
+</ul>
+</li>
+<li>低精度优化
+<ul>
+<li>支持 INT8， FP16 低精度计算，减少模型大小、内存消耗，同时利用硬件低精度计算指令加速计算</li>
+<li>支持 INT8 Winograd 算法，(输入6bit)， 在精度满足要求的情况下，进一步降低模型计算复杂度</li>
+<li>支持单模型多种精度混合计算，加速计算同时保证模型精度</li>
+</ul>
+</li>
+<li>内存优化
+<ul>
+<li>高效”内存池”实现：通过 DAG 网络计算图分析，实现无计算依赖的节点间复用内存，降低 90% 内存资源消耗</li>
+<li>跨模型内存复用：支持外部实时指定用于网络内存，实现“多个模型，单份内存”。</li>
+</ul>
+</li>
+</ul>
+<h2 id="tnnbenchmark">TNN的性能benchmark</h2>
+<p>主流模型的性能表格：</p>
+<ul>
+<li>
+<p>麒麟970：</p>
+<table>
+<thead>
+<tr>
+<th>model</th>
+<th>cpu time(单线程，ms)</th>
+<th>gpu time(ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mobilenet_v1</td>
+<td>88</td>
+<td>12</td>
+</tr>
+<tr>
+<td>Mobilenet_v1_int8</td>
+<td>55</td>
+<td></td>
+</tr>
+<tr>
+<td>Mobilenet_v2</td>
+<td>58</td>
+<td>11</td>
+</tr>
+<tr>
+<td>Mobilenet_v2_int8</td>
+<td>41</td>
+<td></td>
+</tr>
+<tr>
+<td>squeezenet_v1.0</td>
+<td>127</td>
+<td>20</td>
+</tr>
+<tr>
+<td>squeezenet_v1.0_int8</td>
+<td>82</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>骁龙835：</p>
+<table>
+<thead>
+<tr>
+<th>model</th>
+<th>cpu time(单线程，ms)</th>
+<th>gpu time(ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mobilenet_v1</td>
+<td>94</td>
+<td>16</td>
+</tr>
+<tr>
+<td>Mobilenet_v1_int8</td>
+<td>62</td>
+<td></td>
+</tr>
+<tr>
+<td>Mobilenet_v2</td>
+<td>61</td>
+<td>14</td>
+</tr>
+<tr>
+<td>Mobilenet_v2_int8</td>
+<td>47</td>
+<td></td>
+</tr>
+<tr>
+<td>squeezenet_v1.0</td>
+<td>122</td>
+<td>28</td>
+</tr>
+<tr>
+<td>squeezenet_v1.0_int8</td>
+<td>93</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>骁龙845：</p>
+<table>
+<thead>
+<tr>
+<th>model</th>
+<th>cpu time(单线程，ms)</th>
+<th>gpu time(ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mobilenet_v1</td>
+<td>60</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Mobilenet_v1_int8</td>
+<td>37</td>
+<td></td>
+</tr>
+<tr>
+<td>Mobilenet_v2</td>
+<td>39</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Mobilenet_v2_int8</td>
+<td>28</td>
+<td></td>
+</tr>
+<tr>
+<td>squeezenet_v1.0</td>
+<td>74</td>
+<td>14</td>
+</tr>
+<tr>
+<td>squeezenet_v1.0_int8</td>
+<td>56</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+<p>TNN的结构如图：</p>
+<p><img src="https://github.com/Tencent/TNN/raw/master/doc/cn/imgs/tnn_architect.jpg" alt=""></p>
+<p>可以看到：</p>
+<ul>
+<li>TNN采用统一的ONNX模型作为中转，兼容各大框架，这也反映出业界对于ONNX模型的中转方式的认可和推动；</li>
+<li>TNN支持FP16和int8的量化；</li>
+<li>TNN支持计算图的优化，至于具体采用了何种优化模式进行优化，还需要进一步深入代码了解；</li>
+<li>TNN通过抽象化的kernel接口使得算子可以跑在不同的硬件平台之上，支持ARM，GPU，NPU等计算。</li>
+</ul>
+<p>另外，根据TNN官方的描述，它还具有优点：</p>
+<ul>
+<li>通过 ONNX 支持 TensorFlow， PyTorch， MXNet， Caffe 等多种训练框架，充分利用和融入不断完善的 ONNX 开源生态。当前支持 ONNX 算子55个，近期会完善到约80个，覆盖主流CNN网络</li>
+<li>支持主流安卓、iOS、Embedded Linux 操作系统，支持 ARM CPU， GPU 硬件平台（近期还会加入达芬奇 NPU 支持）</li>
+<li>模块化设计，将模型解析、计算图构建、优化、底层硬件适配、高性能 kernel 实现各部分抽象隔离，通过 Factory Mode 注册、构建设备，方便接入更多的底层硬件、加速方案。</li>
+<li>Runtime 无任何第三方库依赖，CPU 动态库尺寸仅约 400KB，并提供基础图像变换操作，调用简单便捷。跨平台模型统一、调用接口统一，通过单个配置参数快速切换。</li>
+</ul>
+<h2 id="tnn-1">TNN支持的算子</h2>
+<p>TNN目前支持的算子还是很丰富的，基本上大多数能够支持ncnn的应用都可以无缝迁移到TNN：</p>
+<p>目前 TNN 支持常用的 CNN 的网络：</p>
+<ul>
+<li>Classical CNN: Vgg AlexNet GoogleNet(v1,v2,v3)</li>
+<li>Practical CNN: ResNet DenseNet SENet</li>
+<li>Light-weight CNN: SqueezeNet MobileNet(v1,v2,v3) ShuffleNet(v1,v2) MNasNet</li>
+<li>Detection: Mtcnn-v2</li>
+<li>Detection: Vgg-ssd SqueezeNet-ssd MobileNetv2-SSDLite &hellip;</li>
+<li>Detection: Yolo-v2 MobileNet-YOLOV3 &hellip;</li>
+<li>Segmentation: FCN PSPNet</li>
+</ul>
+<p>目前支持的硬件：</p>
+<table>
+<thead>
+<tr>
+<th>device</th>
+<th>support</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ARMv7</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ARMv8</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>OpenCL</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Metal</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<h2 id="tnn-2">TNN上手</h2>
+<p>实际编译TNN下来，直接clone代码编译基本上没啥问题，这一点给TNN点赞：</p>
+<pre><code>[ 90%] Building CXX object CMakeFiles/TNN.dir/source/tnn/optimizer/net_optimizer_insert_reformat.cc.o
+[ 90%] Building CXX object CMakeFiles/TNN.dir/source/tnn/optimizer/net_optimizer_manager.cc.o
+[ 91%] Building CXX object CMakeFiles/TNN.dir/source/tnn/optimizer/net_optimizer_remove_layers.cc.o
+[ 91%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/bbox_util.cc.o
+[ 92%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/bfp16_utils.cc.o
+[ 92%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/blob_converter.cc.o
+[ 93%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/blob_converter_internal.cc.o
+[ 93%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/blob_dump_utils.cc.o
+[ 94%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/blob_memory_size_utils.cc.o
+[ 94%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/blob_transfer_utils.cc.o
+[ 95%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/cpu_utils.cc.o
+[ 95%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/data_format_converter.cc.o
+[ 95%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/data_type_utils.cc.o
+[ 96%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/dims_vector_utils.cc.o
+[ 96%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/half_utils.cc.o
+[ 97%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/naive_compute.cc.o
+[ 97%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/pribox_generator_utils.cc.o
+[ 98%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/split_utils.cc.o
+[ 98%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/string_format.cc.o
+[ 99%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/string_utils.cc.o
+[ 99%] Building CXX object CMakeFiles/TNN.dir/source/tnn/utils/wingorad_generater.cc.o
+[100%] Linking CXX shared library libTNN.so
+[100%] Built target TNN
+</code></pre><p>代码鲁棒性还是很强的。</p>
+<p><img src="https://i.loli.net/2020/06/10/7i4GrkbtaX2TpJO.png" alt="image-20200610162755135"></p>
+<p>生成的动态链接库只有1.7M。</p>
+<p>尝试一下convert：</p>
+<p>随便转一个fcos的onnx模型吧（这个模型在ncnn上转是没问题的）：</p>
+<pre><code>❯ python3 converter.py onnx2tnn ~/Desktop/fcos.onnx
+the onnx2tnn command:python3 onnx2tnn.py /home/dd/Desktop/fcos.onnx -version=v1.0 -optimize=0 -half=0 -o /home/dd/Desktop
+0.----onnx version:1.6.0
+algo_optimize 0
+onnx_net_opt_path /home/dd/Desktop/fcos.onnx
+2.----onnx2tnn: /home/dd/Desktop/fcos.onnx
+3.----onnx2tnn status: -1
+
+Traceback (most recent call last):
+  File &quot;onnx2tnn.py&quot;, line 107, in main
+    status = onnx2tnn.convert(onnx_net_opt_path, output_dir, algo_version, file_time, 0 if model_half == '0' else 1)
+AttributeError: module 'onnx2tnn' has no attribute 'convert'
+
+onnx2tnn succeed!
+</code></pre><p>报错，然而还给一个succeed的返回值，这一段代码没有测试过么?</p>
+<p>我算是明白了，这个转换的python脚本不仅隐藏的很深，而且套中套：</p>
+<p><img src="https://i.loli.net/2020/06/10/ALCixuFT5He79NG.png" alt="image-20200610164230745"></p>
+<p>这个操作也太套娃了吧？</p>
+<p>没有ncnn的C++工具来的简单啊，对于工具类的东西，比如模型转换工具，还真的不推荐用python去搞，虽然简单，但是用户感觉很不友好。</p>
+<p>前面编译TNN的时候好像也没有把这个convertor一起编译了，也没有examples编译，总体来说&hellip; 不是很完善？</p>
+<h2 id="heading">结论</h2>
+<p>结论除了速度快一点目前无法得出啥很好的结论了，总体而言，对于新手来说，上手没有ncnn那么直观。其实对于框架来讲，用户体验也很重要。</p>
+<p>优图这次开源的东西API文档蛮多的，给个赞，但是，但是，但是，和许多其他优图开源的东西一样，我本来写这个开题的时候觉得这应该是个很牛逼的东西，但是，用起来可能是另外一回事。</p>
+<p>最后，Github：</p>
+<p><a href="https://github.com/Tencent/TNN">https://github.com/Tencent/TNN</a></p>
+<p>感兴趣的朋友可以玩一玩。</p>
+<h2 id="end">End</h2>
+<p>如果你想学习人工智能，对前沿的AI技术比较感兴趣，可以加入我们的知识星球，获取第一时间资讯，前沿学术动态，业界新闻等等！你的支持将会鼓励我们更频繁的创作，我们也会帮助你开启更深入的深度学习之旅！</p>
+<p><img src="https://i.loli.net/2020/05/15/XLbjVFpS2PqJ75x.png" alt="image-20200515153654923"></p>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://jintian93.github.io">金天</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://jintian93.github.io/post/2020_06_10_16_%E9%87%8D%E7%A3%85%E8%85%BE%E8%AE%AF%E4%BC%98%E5%9B%BE%E5%BC%80%E6%BA%90%E6%9C%80%E6%96%B0%E5%89%8D%E7%AB%AF%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6TNN/">https://jintian93.github.io/post/2020_06_10_16_%E9%87%8D%E7%A3%85%E8%85%BE%E8%AE%AF%E4%BC%98%E5%9B%BE%E5%BC%80%E6%BA%90%E6%9C%80%E6%96%B0%E5%89%8D%E7%AB%AF%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6TNN/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/2020_06_09_12_%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0CUDA%E7%BC%96%E7%A8%8B%E5%B9%B2%E8%B4%A7-kernel%E7%9A%84%E7%BC%96%E5%86%99%E5%92%8C%E8%B0%83%E7%94%A8/">深度学习CUDA编程干货-kernel的编写和调用</a></li>
+        
+        <li><a href="/post/2020_06_03_11_%E5%B9%B2%E8%B4%A7%E4%B8%80%E6%96%87%E6%8E%8C%E6%8F%A1Protobuf%E6%89%80%E6%9C%89%E8%AF%AD%E8%A8%80%E6%89%80%E6%9C%89%E7%94%A8%E6%B3%95%E5%BF%AB%E6%94%B6%E8%97%8F/">干货！一文掌握Protobuf所有语言所有用法，快收藏！</a></li>
+        
+        <li><a href="/post/2020_05_30_15_PolyYolo%E5%BC%80%E6%BA%90Yolo%E4%B9%9F%E8%83%BD%E5%81%9A%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%A3%80%E6%B5%8BmAP%E6%8F%90%E5%8D%8740/">PolyYolo开源！Yolo也能做实例分割，检测mAP提升40%！</a></li>
+        
+        <li><a href="/post/2020_05_30_10_%E9%9C%87%E6%83%8AYoloV4%E8%BF%98%E6%B2%A1%E6%9C%89%E9%80%80%E7%83%ADYoloV5%E5%B7%B2%E7%BB%8F%E5%8F%91%E5%B8%83/">震惊！YoloV4还没有退热，YoloV5已经发布！</a></li>
+        
+        <li><a href="/post/2020_05_28_14_DETR%E8%AF%A6%E8%A7%A3NLP%E9%87%8C%E9%9D%A2%E7%9A%84Transformer%E4%B9%9F%E8%83%BD%E5%81%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/">DETR详解:NLP里面的Transformer也能做目标检测？</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "jintian93/coment-for-blog"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://jintian93.github.io/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://jintian93.github.io">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_30_16_DETR%E4%BD%BF%E7%94%A8Transformer%E5%81%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E7%9A%84%E6%A8%A1%E5%9E%8B%E8%BF%8E%E6%9D%A5%E4%BA%860.2%E7%89%88%E6%9C%AC%E7%9A%84%E5%8F%91%E5%B8%83/" title="DETR使用Transformer做目标检测的模型迎来了0.2版本的发布">DETR使用Transformer做目标检测的模型迎来了0.2版本的发布</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_23_15_%E8%81%8A%E4%B8%80%E8%81%8A%E4%BB%8A%E5%B9%B4%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E9%A2%86%E5%9F%9F%E7%9A%84%E8%BF%9B%E5%B1%95%E5%92%8C%E6%9C%AA%E6%9D%A5%E5%B1%95%E6%9C%9B/" title="聊一聊今年实例分割领域的进展和未来展望">聊一聊今年实例分割领域的进展和未来展望</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_19_11_YoloV5%E7%9A%84TensorRT%E5%8A%A0%E9%80%9F%E5%AE%9E%E7%8E%B049FPSmAP40&#43;/" title="YoloV5的TensorRT加速实现49FPS，mAP40&#43;!">YoloV5的TensorRT加速实现49FPS，mAP40&#43;!</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_11_17_%E4%BD%BF%E7%94%A8mmdetection2.0%E5%AE%9E%E7%8E%B0SOLOV2-%E5%85%A8%E6%96%B0%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%A1%86%E6%9E%B6/" title="使用mmdetection2.0实现SOLOV2-全新的实例分割框架">使用mmdetection2.0实现SOLOV2-全新的实例分割框架</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_10_16_%E9%87%8D%E7%A3%85%E8%85%BE%E8%AE%AF%E4%BC%98%E5%9B%BE%E5%BC%80%E6%BA%90%E6%9C%80%E6%96%B0%E5%89%8D%E7%AB%AF%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6TNN/" title="重磅！腾讯优图开源最新前端推理框架TNN！">重磅！腾讯优图开源最新前端推理框架TNN！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_09_12_%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0CUDA%E7%BC%96%E7%A8%8B%E5%B9%B2%E8%B4%A7-kernel%E7%9A%84%E7%BC%96%E5%86%99%E5%92%8C%E8%B0%83%E7%94%A8/" title="深度学习CUDA编程干货-kernel的编写和调用">深度学习CUDA编程干货-kernel的编写和调用</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_03_11_%E5%B9%B2%E8%B4%A7%E4%B8%80%E6%96%87%E6%8E%8C%E6%8F%A1Protobuf%E6%89%80%E6%9C%89%E8%AF%AD%E8%A8%80%E6%89%80%E6%9C%89%E7%94%A8%E6%B3%95%E5%BF%AB%E6%94%B6%E8%97%8F/" title="干货！一文掌握Protobuf所有语言所有用法，快收藏！">干货！一文掌握Protobuf所有语言所有用法，快收藏！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_30_15_PolyYolo%E5%BC%80%E6%BA%90Yolo%E4%B9%9F%E8%83%BD%E5%81%9A%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%A3%80%E6%B5%8BmAP%E6%8F%90%E5%8D%8740/" title="PolyYolo开源！Yolo也能做实例分割，检测mAP提升40%！">PolyYolo开源！Yolo也能做实例分割，检测mAP提升40%！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_30_10_%E9%9C%87%E6%83%8AYoloV4%E8%BF%98%E6%B2%A1%E6%9C%89%E9%80%80%E7%83%ADYoloV5%E5%B7%B2%E7%BB%8F%E5%8F%91%E5%B8%83/" title="震惊！YoloV4还没有退热，YoloV5已经发布！">震惊！YoloV4还没有退热，YoloV5已经发布！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_28_14_DETR%E8%AF%A6%E8%A7%A3NLP%E9%87%8C%E9%9D%A2%E7%9A%84Transformer%E4%B9%9F%E8%83%BD%E5%81%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" title="DETR详解:NLP里面的Transformer也能做目标检测？">DETR详解:NLP里面的Transformer也能做目标检测？</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="http://manaai.cn" title="【2020】中秋特惠，神力平台终身会员优惠85折！立即开通" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1_rYHo7P2gK0jSZPxXXacQpXa-690-388.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="助力产业智慧升级，云服务器首年88元起，更有千元代金券礼包免费领！" target="_blank" style="color:red">
+                
+                    <img src="https://upload-dianshi-1255598498.file.myqcloud.com/345-7c71532bd4935fbdd9a67c1a71e577b1767b805c.200%E7%89%88%E6%9C%ACB.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="【渠道专享低折扣】11月特惠 限时2折" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1hblJl7Y2gK0jSZFgXXc5OFXa-750-400.jpg">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="http://manaai.cn" title="神力AI平台">神力AI平台</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="http://zhuanlan.zhihu.com/ai-man" title="【知乎专栏】人工智能从入门到逆天杀神">Android Gradle权威指南</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://jintian93.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+    <footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://jintian93.github.io">金天的个人博客 By 金天</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+    <script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+</body>
+
+</html>

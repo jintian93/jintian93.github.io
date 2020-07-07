@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>YoloV4训练自定义的数据集模型 | 金天的个人博客</title>
+    <meta property="og:title" content="YoloV4训练自定义的数据集模型 - 金天的个人博客">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2020-05-07T14:28:57&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2020-05-07T14:28:57&#43;08:00'>
+        
+    <meta name="Keywords" content="golang,go语言,go语言笔记,金天,人工智能,java,android,博客,项目管理,python,软件架构,公众号,小程序,AI项目管理">
+    <meta name="description" content="YoloV4训练自定义的数据集模型">
+        
+    <meta name="author" content="金天">
+    <meta property="og:url" content="https://jintian93.github.io/post/2020_05_07_14_YoloV4%E8%AE%AD%E7%BB%83%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9A%84%E6%95%B0%E6%8D%AE%E9%9B%86%E6%A8%A1%E5%9E%8B/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "238864368",
+        enable_page_level_ads: true
+    });
+    </script>
+    
+
+
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://jintian93.github.io">
+                        金天的个人博客
+                    </a>
+                
+                <p class="description">专注于AI算法研发与落地应用，无人驾驶，模型压缩与加速，边缘端侧推理，AI项目管理与核心技术输出，腾讯自动驾驶专家</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://jintian93.github.io">首页</a>
+                    
+                    <a  href="https://jintian93.github.io/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://jintian93.github.io/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于">关于</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于我">关于我</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#darknet-yolov4">darknet yolov4训练自定义数据集</a></li>
+    <li><a href="#heading">彩蛋</a></li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if(leftPos<220){
+                postToc.css({"width":leftPos-10,"margin-left":(0-leftPos)})
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">YoloV4训练自定义的数据集模型</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2020年5月7日
+        </date>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>本文介绍 YoloV4训练自定义的数据集模型</p>
+<!-- raw HTML omitted -->
+<h1 id="yolov4">YoloV4训练自定义的数据集模型</h1>
+<blockquote>
+<p>本文由林大佬原创，转载请注明出处，来自腾讯、阿里等一线AI算法工程师组成的QQ交流群欢迎你的加入: 1037662480</p>
+</blockquote>
+<p>最近YoloV4成了新的吊打一切的目标检测算法，考虑速度和精度V4的全方位能力甚至超越了EfficientDet，根据本人实测的经验，关于v4我们可以形成一个这样的总结：</p>
+<ul>
+<li>精度几乎不用怀疑，很强，比EfficientDet靠加大图片分辨率提高检测能力的模型要好；</li>
+<li>显存比efficientdet节省很多，efficientdetD4 900的分辨率笔记本上几乎无法跑，而同样的CSPDarknet的YoloV4可以在2G显存的笔记本上跑；</li>
+<li>速度很快，这个速度很快如何定义呢？EfficientDet的FLOPs是比较少，但是速度并不一定快，关于FLOPs和速度的区别大家可以看看一些比较的文章，据我所知现在社区已经有了tensorRT加速的YoloV4，速度在1080Ti上可以跑到20ms，很快了。</li>
+</ul>
+<p>最后可以说V4的整体素质真的强，几乎可以“吊打一切”。但其内部的原理其实很简单，整个结构和yolov3没有本质的区别。今天这篇文章就是教大家如何在darknet框架下训练自己的yolov4模型，同时实现推理和预测。在当下其他的框架还没有完整的比较好的复现的情况下，使用darknet训练模型并部署不失为一个很好的方法，现在很多yolov3的pytorch parser实际上可以读取darknet的weights转换成pytorch的weights。</p>
+<h2 id="darknet-yolov4">darknet yolov4训练自定义数据集</h2>
+<p><img src="https://i.loli.net/2020/05/07/CrfOhKVnbEuiIsF.png" alt="image-20200507162214905"></p>
+<p>自定义数据集的训练要求也很简单。先来看看训练的command，假设你已经编译好了darknet：</p>
+<pre><code>./build_release/darknet detector train data/my_dataset.data cfg/yolov4-my_dataset.cfg backup/yolov4-my_dataset.weights -map
+</code></pre><p>在data里面提供的就是图片的路径，每一行就是一张图片，cfg里面就是网络结构的定义。那么我们首先要准备的就是这两个文件了，接着就可以开始训练（请注意，如果你不是resume训练，那么可以从yolov4官方repo里面下载对应的conv73的weights进行开始训练）。</p>
+<p>假设你的数据集是VOC格式的，我们的步骤主要分为两个:</p>
+<ul>
+<li>在<code>scripts.py</code>下运行一个<code>voc_label.py</code>的脚本（如果你的没有分0712，可以用下面提供的），这个脚本会生成对应的labels（里面包含的是txt格式的yolo标注），以及train.txt也就是上面的训练图片目录；</li>
+<li>运行上面的命令开始训练。</li>
+</ul>
+<p>听起来很简单吧？其实也不难，最关键的是darknet的代码看起来十分的稳健，只要你按照这些步骤来，就不会有错，当然，似乎还漏掉了最后一步，修改yolov4的网络结构，因为这和你的类别数据有关。但这个我们放到最后，因为有点复杂。</p>
+<p>先来准备你的数据吧。上面说了分为两部，但其实你需要先把你的VOC格式标注的数据软连接到 <code>data</code>下面。这样在原始darknet的目录下，你就有了一个<code>data/VOC2018</code>的文件夹，这里面存放的是你自己标注的VOC格式的数据。</p>
+<p>然后运行这个脚本，生成我们需要的东西：</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">import</span> <span style="color:#555">xml.etree.ElementTree</span> <span style="color:#000;font-weight:bold">as</span> <span style="color:#555">ET</span>
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">pickle</span>
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">os</span>
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">os</span> <span style="color:#000;font-weight:bold">import</span> listdir, getcwd
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">os.path</span> <span style="color:#000;font-weight:bold">import</span> join
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">sys</span>
+
+sets<span style="color:#000;font-weight:bold">=</span>[(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">2018</span><span style="color:#d14">&#39;</span>, <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">train</span><span style="color:#d14">&#39;</span>), (<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">2018</span><span style="color:#d14">&#39;</span>, <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">val</span><span style="color:#d14">&#39;</span>)]
+
+classes <span style="color:#000;font-weight:bold">=</span> [<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">a</span><span style="color:#d14">&#34;</span>, <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">b</span><span style="color:#d14">&#34;</span>, <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">c</span><span style="color:#d14">&#34;</span>, <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">d</span><span style="color:#d14">&#34;</span>]
+
+<span style="color:#998;font-style:italic"># soft link your VOC2018 under here</span>
+root_dir <span style="color:#000;font-weight:bold">=</span> sys<span style="color:#000;font-weight:bold">.</span>argv[<span style="color:#099">1</span>]
+
+
+<span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">convert</span>(size, box):
+    dw <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">1.</span><span style="color:#000;font-weight:bold">/</span>(size[<span style="color:#099">0</span>])
+    dh <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">1.</span><span style="color:#000;font-weight:bold">/</span>(size[<span style="color:#099">1</span>])
+    x <span style="color:#000;font-weight:bold">=</span> (box[<span style="color:#099">0</span>] <span style="color:#000;font-weight:bold">+</span> box[<span style="color:#099">1</span>])<span style="color:#000;font-weight:bold">/</span><span style="color:#099">2.0</span> <span style="color:#000;font-weight:bold">-</span> <span style="color:#099">1</span>
+    y <span style="color:#000;font-weight:bold">=</span> (box[<span style="color:#099">2</span>] <span style="color:#000;font-weight:bold">+</span> box[<span style="color:#099">3</span>])<span style="color:#000;font-weight:bold">/</span><span style="color:#099">2.0</span> <span style="color:#000;font-weight:bold">-</span> <span style="color:#099">1</span>
+    w <span style="color:#000;font-weight:bold">=</span> box[<span style="color:#099">1</span>] <span style="color:#000;font-weight:bold">-</span> box[<span style="color:#099">0</span>]
+    h <span style="color:#000;font-weight:bold">=</span> box[<span style="color:#099">3</span>] <span style="color:#000;font-weight:bold">-</span> box[<span style="color:#099">2</span>]
+    x <span style="color:#000;font-weight:bold">=</span> x<span style="color:#000;font-weight:bold">*</span>dw
+    w <span style="color:#000;font-weight:bold">=</span> w<span style="color:#000;font-weight:bold">*</span>dw
+    y <span style="color:#000;font-weight:bold">=</span> y<span style="color:#000;font-weight:bold">*</span>dh
+    h <span style="color:#000;font-weight:bold">=</span> h<span style="color:#000;font-weight:bold">*</span>dh
+    <span style="color:#000;font-weight:bold">return</span> (x,y,w,h)
+
+<span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">convert_annotation</span>(year, image_id):
+    in_file <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">open</span>(os<span style="color:#000;font-weight:bold">.</span>path<span style="color:#000;font-weight:bold">.</span>join(root_dir, <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">VOC</span><span style="color:#d14">%s</span><span style="color:#d14">/Annotations/</span><span style="color:#d14">%s</span><span style="color:#d14">.xml</span><span style="color:#d14">&#39;</span><span style="color:#000;font-weight:bold">%</span>(year, image_id)))
+    out_file <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">open</span>(os<span style="color:#000;font-weight:bold">.</span>path<span style="color:#000;font-weight:bold">.</span>join(root_dir, <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">VOC</span><span style="color:#d14">%s</span><span style="color:#d14">/labels/</span><span style="color:#d14">%s</span><span style="color:#d14">.txt</span><span style="color:#d14">&#39;</span><span style="color:#000;font-weight:bold">%</span>(year, image_id)), <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">w</span><span style="color:#d14">&#39;</span>)
+    tree<span style="color:#000;font-weight:bold">=</span>ET<span style="color:#000;font-weight:bold">.</span>parse(in_file)
+    root <span style="color:#000;font-weight:bold">=</span> tree<span style="color:#000;font-weight:bold">.</span>getroot()
+    size <span style="color:#000;font-weight:bold">=</span> root<span style="color:#000;font-weight:bold">.</span>find(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">size</span><span style="color:#d14">&#39;</span>)
+    w <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">int</span>(size<span style="color:#000;font-weight:bold">.</span>find(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">width</span><span style="color:#d14">&#39;</span>)<span style="color:#000;font-weight:bold">.</span>text)
+    h <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">int</span>(size<span style="color:#000;font-weight:bold">.</span>find(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">height</span><span style="color:#d14">&#39;</span>)<span style="color:#000;font-weight:bold">.</span>text)
+
+    <span style="color:#000;font-weight:bold">for</span> obj <span style="color:#000;font-weight:bold">in</span> root<span style="color:#000;font-weight:bold">.</span>iter(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">object</span><span style="color:#d14">&#39;</span>):
+        difficult <span style="color:#000;font-weight:bold">=</span> obj<span style="color:#000;font-weight:bold">.</span>find(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">difficult</span><span style="color:#d14">&#39;</span>)<span style="color:#000;font-weight:bold">.</span>text
+        <span style="color:#999">cls</span> <span style="color:#000;font-weight:bold">=</span> obj<span style="color:#000;font-weight:bold">.</span>find(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">name</span><span style="color:#d14">&#39;</span>)<span style="color:#000;font-weight:bold">.</span>text
+        <span style="color:#000;font-weight:bold">if</span> <span style="color:#999">cls</span> <span style="color:#000;font-weight:bold">not</span> <span style="color:#000;font-weight:bold">in</span> classes <span style="color:#000;font-weight:bold">or</span> <span style="color:#0086b3">int</span>(difficult)<span style="color:#000;font-weight:bold">==</span><span style="color:#099">1</span>:
+            <span style="color:#000;font-weight:bold">continue</span>
+        cls_id <span style="color:#000;font-weight:bold">=</span> classes<span style="color:#000;font-weight:bold">.</span>index(<span style="color:#999">cls</span>)
+        xmlbox <span style="color:#000;font-weight:bold">=</span> obj<span style="color:#000;font-weight:bold">.</span>find(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">bndbox</span><span style="color:#d14">&#39;</span>)
+        b <span style="color:#000;font-weight:bold">=</span> (<span style="color:#0086b3">float</span>(xmlbox<span style="color:#000;font-weight:bold">.</span>find(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">xmin</span><span style="color:#d14">&#39;</span>)<span style="color:#000;font-weight:bold">.</span>text), <span style="color:#0086b3">float</span>(xmlbox<span style="color:#000;font-weight:bold">.</span>find(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">xmax</span><span style="color:#d14">&#39;</span>)<span style="color:#000;font-weight:bold">.</span>text), <span style="color:#0086b3">float</span>(xmlbox<span style="color:#000;font-weight:bold">.</span>find(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">ymin</span><span style="color:#d14">&#39;</span>)<span style="color:#000;font-weight:bold">.</span>text), <span style="color:#0086b3">float</span>(xmlbox<span style="color:#000;font-weight:bold">.</span>find(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">ymax</span><span style="color:#d14">&#39;</span>)<span style="color:#000;font-weight:bold">.</span>text))
+        bb <span style="color:#000;font-weight:bold">=</span> convert((w,h), b)
+        out_file<span style="color:#000;font-weight:bold">.</span>write(<span style="color:#0086b3">str</span>(cls_id) <span style="color:#000;font-weight:bold">+</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14"> </span><span style="color:#d14">&#34;</span> <span style="color:#000;font-weight:bold">+</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14"> </span><span style="color:#d14">&#34;</span><span style="color:#000;font-weight:bold">.</span>join([<span style="color:#0086b3">str</span>(a) <span style="color:#000;font-weight:bold">for</span> a <span style="color:#000;font-weight:bold">in</span> bb]) <span style="color:#000;font-weight:bold">+</span> <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">\n</span><span style="color:#d14">&#39;</span>)
+
+wd <span style="color:#000;font-weight:bold">=</span> getcwd()
+
+<span style="color:#000;font-weight:bold">for</span> year, image_set <span style="color:#000;font-weight:bold">in</span> sets:
+    labels_target <span style="color:#000;font-weight:bold">=</span> os<span style="color:#000;font-weight:bold">.</span>path<span style="color:#000;font-weight:bold">.</span>join(root_dir, <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">VOC</span><span style="color:#d14">%s</span><span style="color:#d14">/labels/</span><span style="color:#d14">&#39;</span><span style="color:#000;font-weight:bold">%</span>(year))
+    <span style="color:#000;font-weight:bold">print</span>(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">labels dir to save: {}</span><span style="color:#d14">&#39;</span><span style="color:#000;font-weight:bold">.</span>format(labels_target))
+    <span style="color:#000;font-weight:bold">if</span> <span style="color:#000;font-weight:bold">not</span> os<span style="color:#000;font-weight:bold">.</span>path<span style="color:#000;font-weight:bold">.</span>exists(labels_target):
+        os<span style="color:#000;font-weight:bold">.</span>makedirs(labels_target)
+    image_ids <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">open</span>(os<span style="color:#000;font-weight:bold">.</span>path<span style="color:#000;font-weight:bold">.</span>join(root_dir, <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">VOC{}/ImageSets/Main/{}.txt</span><span style="color:#d14">&#39;</span><span style="color:#000;font-weight:bold">.</span>format(year, image_set)))<span style="color:#000;font-weight:bold">.</span>read()<span style="color:#000;font-weight:bold">.</span>strip()<span style="color:#000;font-weight:bold">.</span>split()
+    list_file <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">open</span>(os<span style="color:#000;font-weight:bold">.</span>path<span style="color:#000;font-weight:bold">.</span>join(root_dir, <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">%s</span><span style="color:#d14">_</span><span style="color:#d14">%s</span><span style="color:#d14">.txt</span><span style="color:#d14">&#39;</span><span style="color:#000;font-weight:bold">%</span>(year, image_set)), <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">w</span><span style="color:#d14">&#39;</span>)
+    <span style="color:#000;font-weight:bold">for</span> image_id <span style="color:#000;font-weight:bold">in</span> image_ids:
+        img_f <span style="color:#000;font-weight:bold">=</span> os<span style="color:#000;font-weight:bold">.</span>path<span style="color:#000;font-weight:bold">.</span>join(root_dir, <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">VOC</span><span style="color:#d14">%s</span><span style="color:#d14">/JPEGImages/</span><span style="color:#d14">%s</span><span style="color:#d14">.jpg</span><span style="color:#d14">\n</span><span style="color:#d14">&#39;</span><span style="color:#000;font-weight:bold">%</span>(year, image_id))
+        list_file<span style="color:#000;font-weight:bold">.</span>write(os<span style="color:#000;font-weight:bold">.</span>path<span style="color:#000;font-weight:bold">.</span>abspath(img_f))
+        convert_annotation(year, image_id)
+    list_file<span style="color:#000;font-weight:bold">.</span>close()
+
+<span style="color:#000;font-weight:bold">print</span>(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">done.</span><span style="color:#d14">&#39;</span>)
+</code></pre></td></tr></table>
+</div>
+</div><p>然后你在<code>scripts</code>的目录下运行一下：</p>
+<pre><code>python3 voc_label_aabb.py ../data/VOC2018
+</code></pre><p>这时候，你需要的东西就会在<code>data</code>下面生成。你需要的data文件就是这样的：</p>
+<pre><code>classes= 4
+train  = data/2018_train.txt
+valid  = data/2018_val.txt
+names = data/aabb.names
+backup = backup/
+</code></pre><p>这些你都有了，4是你自己的类别数目。</p>
+<p>最后我们说一下如何修改cfg网络结构。</p>
+<p>主要修改的点如下，按照顺序来：</p>
+<ul>
+<li>
+<p><code>[net]</code>开头这部分：</p>
+<pre><code># 2000*num_classes
+max_batches = 8000
+policy=steps
+steps=6400,7200
+</code></pre><p>你需要按照你的类别数目，修改这个max_batches, 通常就是2000x你的类别数。然后steps就是上面数字的80%和90%的分界点。</p>
+</li>
+<li>
+<p>每个yolo layer前的最后一个conv：</p>
+<pre><code>[convolutional]
+size=1
+stride=1
+pad=1
+# (80+5)x3=255 (4+5)x3=60
+filters=27
+activation=linear
+</code></pre><p>修改一下filters，它的数目为：(num_classes + 5)x3</p>
+</li>
+<li>
+<p>最后就是yolo layer里面的classes：</p>
+<pre><code>[yolo]
+mask = 6,7,8
+anchors = 12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401
+classes=4
+</code></pre></li>
+</ul>
+<p>其他的不需要修改。</p>
+<p>##　训练结果</p>
+<p>yolov4的训练过程非常快，到大概1000个iter就差不多有一个可以用的结果了。自定义的数据集训练出来也很好。</p>
+<p><img src="https://i.loli.net/2020/05/07/5HDEif2U79bScCM.jpg" alt="img"></p>
+<p>总结一下：</p>
+<p>Yolov4是真的强，小物体检测很稳定，同时置信度很高，这比一些anchor-free的算法要好很多。相比于efficientdet，它的置信度其实是很低的，在一些对把握度要求很高的场合，yolov4更具有优越性。</p>
+<h2 id="heading">彩蛋</h2>
+<p>我们在GTX1080上测试通过TensorRT加速的YoloV4的模型，在标准版本的输入下，采用fp32推理，其速度可以达到20ms，速度高达48fps。这对一个高精度检测算法来说，已经很不错了。</p>
+<p><img src="https://i.loli.net/2020/05/07/LD1I4W2aqhV7TKN.gif" alt=""></p>
+<p>如果你对自定义数据集训练yolov4有任何疑问，欢迎来社区交流：</p>
+<p><a href="http://t.manaai.cn">http://t.manaai.cn</a></p>
+<p>如果你需要TensorRT加速的YoloV4，欢迎假如QQ群与我们交流。</p>
+<blockquote>
+<p>欢迎广大AI爱好者加入我们的AI学习者群，与强者同行，学习最精尖的技术：1037662480 (QQGroup)</p>
+</blockquote>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://jintian93.github.io">金天</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://jintian93.github.io/post/2020_05_07_14_YoloV4%E8%AE%AD%E7%BB%83%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9A%84%E6%95%B0%E6%8D%AE%E9%9B%86%E6%A8%A1%E5%9E%8B/">https://jintian93.github.io/post/2020_05_07_14_YoloV4%E8%AE%AD%E7%BB%83%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9A%84%E6%95%B0%E6%8D%AE%E9%9B%86%E6%A8%A1%E5%9E%8B/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/2020_05_05_10_Ubuntu20.04%E9%87%8C%E9%9D%A2%E6%90%AD%E5%BB%BAFlutterDesktop%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E4%BD%BF%E7%94%A8go-flutter/">Ubuntu20.04里面搭建FlutterDesktop开发环境使用go-flutter</a></li>
+        
+        <li><a href="/post/2020_04_11_14_yolov3%E5%A2%9E%E5%BC%BA%E7%89%88TensorRT%E5%8A%A0%E9%80%9FMX250%E4%B8%8B28fpsJetsonNano%E5%BF%85%E5%A4%87/">yolov3增强版TensorRT加速MX250下28fps！JetsonNano必备</a></li>
+        
+        <li><a href="/post/2020_04_09_19_Ubuntu20.04%E4%B8%8B%E5%AE%89%E8%A3%85wechat-deepin/">Ubuntu20.04下安装wechat-deepin</a></li>
+        
+        <li><a href="/post/2020_04_01_17_%E8%AE%A9%E8%92%99%E5%A8%9C%E4%B8%BD%E8%8E%8E%E6%B4%BB%E8%BF%87%E6%9D%A5%E7%9A%84%E8%A7%86%E9%A2%91%E9%A9%B1%E5%8A%A8%E4%BA%BA%E5%83%8F%E7%94%9F%E6%88%90/">让蒙娜丽莎活过来的视频驱动人像生成</a></li>
+        
+        <li><a href="/post/2020_02_11_11_Pytorch3D_%E4%B8%8A%E6%89%8B%E5%AD%A6%E4%B9%A03D%E7%9A%84AI%E6%A8%A1%E5%9E%8B/">2020_02_11_11_Pytorch3D_上手学习3D的AI模型</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "jintian93/coment-for-blog"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://jintian93.github.io/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://jintian93.github.io">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_30_16_DETR%E4%BD%BF%E7%94%A8Transformer%E5%81%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E7%9A%84%E6%A8%A1%E5%9E%8B%E8%BF%8E%E6%9D%A5%E4%BA%860.2%E7%89%88%E6%9C%AC%E7%9A%84%E5%8F%91%E5%B8%83/" title="DETR使用Transformer做目标检测的模型迎来了0.2版本的发布">DETR使用Transformer做目标检测的模型迎来了0.2版本的发布</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_23_15_%E8%81%8A%E4%B8%80%E8%81%8A%E4%BB%8A%E5%B9%B4%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E9%A2%86%E5%9F%9F%E7%9A%84%E8%BF%9B%E5%B1%95%E5%92%8C%E6%9C%AA%E6%9D%A5%E5%B1%95%E6%9C%9B/" title="聊一聊今年实例分割领域的进展和未来展望">聊一聊今年实例分割领域的进展和未来展望</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_19_11_YoloV5%E7%9A%84TensorRT%E5%8A%A0%E9%80%9F%E5%AE%9E%E7%8E%B049FPSmAP40&#43;/" title="YoloV5的TensorRT加速实现49FPS，mAP40&#43;!">YoloV5的TensorRT加速实现49FPS，mAP40&#43;!</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_11_17_%E4%BD%BF%E7%94%A8mmdetection2.0%E5%AE%9E%E7%8E%B0SOLOV2-%E5%85%A8%E6%96%B0%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%A1%86%E6%9E%B6/" title="使用mmdetection2.0实现SOLOV2-全新的实例分割框架">使用mmdetection2.0实现SOLOV2-全新的实例分割框架</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_10_16_%E9%87%8D%E7%A3%85%E8%85%BE%E8%AE%AF%E4%BC%98%E5%9B%BE%E5%BC%80%E6%BA%90%E6%9C%80%E6%96%B0%E5%89%8D%E7%AB%AF%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6TNN/" title="重磅！腾讯优图开源最新前端推理框架TNN！">重磅！腾讯优图开源最新前端推理框架TNN！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_09_12_%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0CUDA%E7%BC%96%E7%A8%8B%E5%B9%B2%E8%B4%A7-kernel%E7%9A%84%E7%BC%96%E5%86%99%E5%92%8C%E8%B0%83%E7%94%A8/" title="深度学习CUDA编程干货-kernel的编写和调用">深度学习CUDA编程干货-kernel的编写和调用</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_03_11_%E5%B9%B2%E8%B4%A7%E4%B8%80%E6%96%87%E6%8E%8C%E6%8F%A1Protobuf%E6%89%80%E6%9C%89%E8%AF%AD%E8%A8%80%E6%89%80%E6%9C%89%E7%94%A8%E6%B3%95%E5%BF%AB%E6%94%B6%E8%97%8F/" title="干货！一文掌握Protobuf所有语言所有用法，快收藏！">干货！一文掌握Protobuf所有语言所有用法，快收藏！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_30_15_PolyYolo%E5%BC%80%E6%BA%90Yolo%E4%B9%9F%E8%83%BD%E5%81%9A%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%A3%80%E6%B5%8BmAP%E6%8F%90%E5%8D%8740/" title="PolyYolo开源！Yolo也能做实例分割，检测mAP提升40%！">PolyYolo开源！Yolo也能做实例分割，检测mAP提升40%！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_30_10_%E9%9C%87%E6%83%8AYoloV4%E8%BF%98%E6%B2%A1%E6%9C%89%E9%80%80%E7%83%ADYoloV5%E5%B7%B2%E7%BB%8F%E5%8F%91%E5%B8%83/" title="震惊！YoloV4还没有退热，YoloV5已经发布！">震惊！YoloV4还没有退热，YoloV5已经发布！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_28_14_DETR%E8%AF%A6%E8%A7%A3NLP%E9%87%8C%E9%9D%A2%E7%9A%84Transformer%E4%B9%9F%E8%83%BD%E5%81%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" title="DETR详解:NLP里面的Transformer也能做目标检测？">DETR详解:NLP里面的Transformer也能做目标检测？</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="http://manaai.cn" title="【2020】中秋特惠，神力平台终身会员优惠85折！立即开通" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1_rYHo7P2gK0jSZPxXXacQpXa-690-388.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="助力产业智慧升级，云服务器首年88元起，更有千元代金券礼包免费领！" target="_blank" style="color:red">
+                
+                    <img src="https://upload-dianshi-1255598498.file.myqcloud.com/345-7c71532bd4935fbdd9a67c1a71e577b1767b805c.200%E7%89%88%E6%9C%ACB.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="【渠道专享低折扣】11月特惠 限时2折" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1hblJl7Y2gK0jSZFgXXc5OFXa-750-400.jpg">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="http://manaai.cn" title="神力AI平台">神力AI平台</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="http://zhuanlan.zhihu.com/ai-man" title="【知乎专栏】人工智能从入门到逆天杀神">Android Gradle权威指南</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://jintian93.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+    <footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://jintian93.github.io">金天的个人博客 By 金天</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+    <script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+</body>
+
+</html>

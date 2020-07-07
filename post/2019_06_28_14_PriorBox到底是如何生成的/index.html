@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>PriorBox到底是如何生成的? | 金天的个人博客</title>
+    <meta property="og:title" content="PriorBox到底是如何生成的? - 金天的个人博客">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2019-06-28T14:24:01&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2019-06-28T14:24:01&#43;08:00'>
+        
+    <meta name="Keywords" content="golang,go语言,go语言笔记,金天,人工智能,java,android,博客,项目管理,python,软件架构,公众号,小程序,AI项目管理">
+    <meta name="description" content="PriorBox到底是如何生成的?">
+        
+    <meta name="author" content="金天">
+    <meta property="og:url" content="https://jintian93.github.io/post/2019_06_28_14_PriorBox%E5%88%B0%E5%BA%95%E6%98%AF%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90%E7%9A%84/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "238864368",
+        enable_page_level_ads: true
+    });
+    </script>
+    
+
+
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://jintian93.github.io">
+                        金天的个人博客
+                    </a>
+                
+                <p class="description">专注于AI算法研发与落地应用，无人驾驶，模型压缩与加速，边缘端侧推理，AI项目管理与核心技术输出，腾讯自动驾驶专家</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://jintian93.github.io">首页</a>
+                    
+                    <a  href="https://jintian93.github.io/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://jintian93.github.io/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于">关于</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于我">关于我</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents"></nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if(leftPos<220){
+                postToc.css({"width":leftPos-10,"margin-left":(0-leftPos)})
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">PriorBox到底是如何生成的?</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年6月28日
+        </date>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>本文介绍 PriorBox到底是如何生成的?</p>
+<!-- raw HTML omitted -->
+<h1 id="priorbox">PriorBox到底是如何生成的?</h1>
+<blockquote>
+<p>This article was original written by Jin Tian, welcome re-post, first come with <a href="https://jinfagang.github.io">https://jinfagang.github.io</a> . but please keep this copyright info, thanks, any question could be asked via wechat: <code>jintianiloveu</code></p>
+</blockquote>
+<p>最近在用libtorch部署一些先进的快速的one-stage检测器, 参考晚上的一个项目, 里面直接提供了一个csv里面包含的是Prior. 那么问题来了:</p>
+<ul>
+<li>这priorbox是如何生成的?</li>
+<li>它跟哪些预先设定的变量有关?</li>
+</ul>
+<p>今天主要解决这两个问题.</p>
+<p>##　priorbox是如何生成的？</p>
+<p>其实很多priorbox的翻译不正确, 直接意思应该是<strong>默认框</strong>. 因为接下来所有的预测, 都是相对于默认狂的offsets. 如果你没有默认框的位置, 即便是网络输出了offsets, 那也是没有用的.</p>
+<p>因此假如你拿到一个检测模型, 只有模型而不知道预设值, 那么你就无法真正得到检测结果..</p>
+<p>这就出现了两个问题, 这个默认框到底, 如何生成?</p>
+<p>不管是SSd也好,RFBNet也好, 其本质上差不多,我们以SSD为例, 简单的记录一下如何生成SSD需要的priorbox.</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#998;font-style:italic"># SSD中的,从6个地方抽取特征图, 你可以看做是从6个不同尺度的矩阵中提取默认框</span>
+
+<span style="color:#998;font-style:italic"># 对应VGG的相应层输出</span>
+feature_maps <span style="color:#000;font-weight:bold">=</span> [<span style="color:#099">38</span>, <span style="color:#099">19</span>, <span style="color:#099">10</span>, <span style="color:#099">5</span>, <span style="color:#099">3</span>, <span style="color:#099">1</span>]
+min_sizes <span style="color:#000;font-weight:bold">=</span> [<span style="color:#000;font-weight:bold">.</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000;font-weight:bold">.</span>]
+max_sizes <span style="color:#000;font-weight:bold">=</span> [<span style="color:#000;font-weight:bold">.</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000;font-weight:bold">.</span>]
+aspect_ratios <span style="color:#000;font-weight:bold">=</span> [[<span style="color:#099">2</span>], [<span style="color:#099">2</span>, <span style="color:#099">3</span>], [<span style="color:#099">2</span>, <span style="color:#099">3</span>], [<span style="color:#099">2</span>, <span style="color:#099">3</span>], [<span style="color:#099">2</span>], [<span style="color:#099">2</span>]]
+image_size <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">300</span>
+
+prior_boxes <span style="color:#000;font-weight:bold">=</span> []
+
+<span style="color:#000;font-weight:bold">for</span> k, f <span style="color:#000;font-weight:bold">in</span> emumerate(feature_maps):
+	<span style="color:#998;font-style:italic"># 0, 38; 1, 19</span>
+	<span style="color:#000;font-weight:bold">for</span> i, j <span style="color:#000;font-weight:bold">in</span> iteraltools<span style="color:#000;font-weight:bold">.</span>product(<span style="color:#0086b3">range</span>(f), repeat<span style="color:#000;font-weight:bold">=</span><span style="color:#099">2</span>):
+		<span style="color:#998;font-style:italic"># 38: 遍历38x38矩阵的每一个点</span>
+		<span style="color:#998;font-style:italic"># 先计算中心点</span>
+		c_x <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">.</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000;font-weight:bold">.</span>
+		c_y <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">.</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000;font-weight:bold">.</span>
+		
+		s_k <span style="color:#000;font-weight:bold">=</span> min_sizes[k]<span style="color:#000;font-weight:bold">/</span>image_size
+		<span style="color:#998;font-style:italic"># 第一种正方形框</span>
+		prior_boxes<span style="color:#000;font-weight:bold">.</span>append([c_x, c_y, s_k, s_k])
+		
+		s_k_max <span style="color:#000;font-weight:bold">=</span> max_sizes[k]<span style="color:#000;font-weight:bold">/</span>image_size
+		prior_boxes<span style="color:#000;font-weight:bold">.</span>append([c_x, c_y, s_k_max, s_k_max])
+		
+		<span style="color:#998;font-style:italic"># 产生不同ratio的框</span>
+		<span style="color:#000;font-weight:bold">for</span> ratio <span style="color:#000;font-weight:bold">in</span> aspect_ratios[k]:
+			prior_boxes<span style="color:#000;font-weight:bold">.</span>append([c_x, c_y, s_k<span style="color:#000;font-weight:bold">*</span>sqrt(ratio), s_k<span style="color:#000;font-weight:bold">/</span>sqrt(ratio)])
+			prior_boxes<span style="color:#000;font-weight:bold">.</span>append([c_x, c_y, s_k<span style="color:#000;font-weight:bold">/</span>sqrt(ratio), s_k<span style="color:#000;font-weight:bold">*</span>sqrt(ratio)])
+		
+		
+</code></pre></td></tr></table>
+</div>
+</div><p>上面基本上就添加完成了.</p>
+<p>思路也很简单, 你首先要遍历6个矩阵, 这6个矩阵中最大的是38x38, 最小的是1x1, 每一个矩阵中的每一个点, 你都要生成对应的默认框, 而这些框是对应于图片尺寸归一化的. 而与最终结果相关的, 就是你设定的max_sizes 和 min_sizes. 以及你设定的ratio, 以及图像尺寸. 其他的没有影响.</p>
+<p>w</p>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://jintian93.github.io">金天</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://jintian93.github.io/post/2019_06_28_14_PriorBox%E5%88%B0%E5%BA%95%E6%98%AF%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90%E7%9A%84/">https://jintian93.github.io/post/2019_06_28_14_PriorBox%E5%88%B0%E5%BA%95%E6%98%AF%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90%E7%9A%84/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/2019_06_27_14_%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E9%87%8F%E5%8C%96%E4%B9%8BGEMM%E9%80%9A%E7%94%A8%E7%9F%A9%E9%98%B5%E4%B9%98%E6%B3%95/">深度学习量化之GEMM通用矩阵乘法</a></li>
+        
+        <li><a href="/post/2019_06_25_18_%E8%AE%B0%E5%BD%95%E4%BB%8A%E5%A4%A9%E9%81%87%E5%88%B0%E7%9A%84%E4%B8%A4%E4%B8%AA%E5%9D%91/">记录今天遇到的两个坑</a></li>
+        
+        <li><a href="/post/2019_06_20_11_ROIPooling%E4%B8%8EROIAlign%E7%9A%84%E6%80%9D%E8%80%83/">ROIPooling与ROIAlign的思考</a></li>
+        
+        <li><a href="/post/2019_05_22_17_%E5%8D%B7%E7%A7%AF%E7%AE%97%E6%B3%95%E4%BC%98%E5%8C%96%E4%B8%8Ewinogra%E7%AE%97%E6%B3%95/">卷积算法优化与winogra算法</a></li>
+        
+        <li><a href="/post/2019_05_22_09_pytorch%E8%87%AA%E5%B7%B1%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AACrossEntropy%E5%87%BD%E6%95%B0/">pytorch自己实现一个CrossEntropy函数</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "jintian93/coment-for-blog"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://jintian93.github.io/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://jintian93.github.io">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_30_16_DETR%E4%BD%BF%E7%94%A8Transformer%E5%81%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E7%9A%84%E6%A8%A1%E5%9E%8B%E8%BF%8E%E6%9D%A5%E4%BA%860.2%E7%89%88%E6%9C%AC%E7%9A%84%E5%8F%91%E5%B8%83/" title="DETR使用Transformer做目标检测的模型迎来了0.2版本的发布">DETR使用Transformer做目标检测的模型迎来了0.2版本的发布</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_23_15_%E8%81%8A%E4%B8%80%E8%81%8A%E4%BB%8A%E5%B9%B4%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E9%A2%86%E5%9F%9F%E7%9A%84%E8%BF%9B%E5%B1%95%E5%92%8C%E6%9C%AA%E6%9D%A5%E5%B1%95%E6%9C%9B/" title="聊一聊今年实例分割领域的进展和未来展望">聊一聊今年实例分割领域的进展和未来展望</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_19_11_YoloV5%E7%9A%84TensorRT%E5%8A%A0%E9%80%9F%E5%AE%9E%E7%8E%B049FPSmAP40&#43;/" title="YoloV5的TensorRT加速实现49FPS，mAP40&#43;!">YoloV5的TensorRT加速实现49FPS，mAP40&#43;!</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_11_17_%E4%BD%BF%E7%94%A8mmdetection2.0%E5%AE%9E%E7%8E%B0SOLOV2-%E5%85%A8%E6%96%B0%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%A1%86%E6%9E%B6/" title="使用mmdetection2.0实现SOLOV2-全新的实例分割框架">使用mmdetection2.0实现SOLOV2-全新的实例分割框架</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_10_16_%E9%87%8D%E7%A3%85%E8%85%BE%E8%AE%AF%E4%BC%98%E5%9B%BE%E5%BC%80%E6%BA%90%E6%9C%80%E6%96%B0%E5%89%8D%E7%AB%AF%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6TNN/" title="重磅！腾讯优图开源最新前端推理框架TNN！">重磅！腾讯优图开源最新前端推理框架TNN！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_09_12_%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0CUDA%E7%BC%96%E7%A8%8B%E5%B9%B2%E8%B4%A7-kernel%E7%9A%84%E7%BC%96%E5%86%99%E5%92%8C%E8%B0%83%E7%94%A8/" title="深度学习CUDA编程干货-kernel的编写和调用">深度学习CUDA编程干货-kernel的编写和调用</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_06_03_11_%E5%B9%B2%E8%B4%A7%E4%B8%80%E6%96%87%E6%8E%8C%E6%8F%A1Protobuf%E6%89%80%E6%9C%89%E8%AF%AD%E8%A8%80%E6%89%80%E6%9C%89%E7%94%A8%E6%B3%95%E5%BF%AB%E6%94%B6%E8%97%8F/" title="干货！一文掌握Protobuf所有语言所有用法，快收藏！">干货！一文掌握Protobuf所有语言所有用法，快收藏！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_30_15_PolyYolo%E5%BC%80%E6%BA%90Yolo%E4%B9%9F%E8%83%BD%E5%81%9A%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%A3%80%E6%B5%8BmAP%E6%8F%90%E5%8D%8740/" title="PolyYolo开源！Yolo也能做实例分割，检测mAP提升40%！">PolyYolo开源！Yolo也能做实例分割，检测mAP提升40%！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_30_10_%E9%9C%87%E6%83%8AYoloV4%E8%BF%98%E6%B2%A1%E6%9C%89%E9%80%80%E7%83%ADYoloV5%E5%B7%B2%E7%BB%8F%E5%8F%91%E5%B8%83/" title="震惊！YoloV4还没有退热，YoloV5已经发布！">震惊！YoloV4还没有退热，YoloV5已经发布！</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_05_28_14_DETR%E8%AF%A6%E8%A7%A3NLP%E9%87%8C%E9%9D%A2%E7%9A%84Transformer%E4%B9%9F%E8%83%BD%E5%81%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" title="DETR详解:NLP里面的Transformer也能做目标检测？">DETR详解:NLP里面的Transformer也能做目标检测？</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="http://manaai.cn" title="【2020】中秋特惠，神力平台终身会员优惠85折！立即开通" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1_rYHo7P2gK0jSZPxXXacQpXa-690-388.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="助力产业智慧升级，云服务器首年88元起，更有千元代金券礼包免费领！" target="_blank" style="color:red">
+                
+                    <img src="https://upload-dianshi-1255598498.file.myqcloud.com/345-7c71532bd4935fbdd9a67c1a71e577b1767b805c.200%E7%89%88%E6%9C%ACB.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="【渠道专享低折扣】11月特惠 限时2折" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1hblJl7Y2gK0jSZFgXXc5OFXa-750-400.jpg">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="http://manaai.cn" title="神力AI平台">神力AI平台</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="http://zhuanlan.zhihu.com/ai-man" title="【知乎专栏】人工智能从入门到逆天杀神">Android Gradle权威指南</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://jintian93.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+    <footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://jintian93.github.io">金天的个人博客 By 金天</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+    <script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+</body>
+
+</html>
