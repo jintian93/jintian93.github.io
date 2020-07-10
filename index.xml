@@ -659,5 +659,14 @@
       <description>本文介绍 行人轨迹预测 行人轨迹预测 This article was original written by Jin Tian, welcome re-post, first come with https://jinfagang.github.io . but please keep this copyright info, thanks, any question could be asked via wechat: jintianiloveu 开始记录一下行人轨迹预测相关的工作。思考行人轨迹预测问题的时候，我想应该分为两个方面： 基于跟踪的轨迹预测，跟踪一个目标，然后把轨迹画出来 基于检测的轨迹预测，每一针率把目标检测出来，然后对目</description>
     </item>
     
+    <item>
+      <title>归档</title>
+      <link>https://jintian93.github.io/archives/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://jintian93.github.io/archives/</guid>
+      <description></description>
+    </item>
+    
   </channel>
 </rss>
