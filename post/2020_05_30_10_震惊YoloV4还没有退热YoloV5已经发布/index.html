@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>震惊！YoloV4还没有退热，YoloV5已经发布！ | 金天的个人博客</title>
+    <meta property="og:title" content="震惊！YoloV4还没有退热，YoloV5已经发布！ - 金天的个人博客">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2020-05-30T10:53:21&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2020-05-30T10:53:21&#43;08:00'>
+        
+    <meta name="Keywords" content="golang,go语言,go语言笔记,金天,人工智能,java,android,博客,项目管理,python,软件架构,公众号,小程序,AI项目管理">
+    <meta name="description" content="震惊！YoloV4还没有退热，YoloV5已经发布！">
+        
+    <meta name="author" content="金天">
+    <meta property="og:url" content="https://jintian93.github.io/post/2020_05_30_10_%E9%9C%87%E6%83%8AYoloV4%E8%BF%98%E6%B2%A1%E6%9C%89%E9%80%80%E7%83%ADYoloV5%E5%B7%B2%E7%BB%8F%E5%8F%91%E5%B8%83/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "238864368",
+        enable_page_level_ads: true
+    });
+    </script>
+    
+
+
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://jintian93.github.io">
+                        金天的个人博客
+                    </a>
+                
+                <p class="description">专注于AI算法研发与落地应用，无人驾驶，模型压缩与加速，边缘端侧推理，AI项目管理与核心技术输出，腾讯自动驾驶专家</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://jintian93.github.io">首页</a>
+                    
+                    <a  href="https://jintian93.github.io/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://jintian93.github.io/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于">关于</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于我">关于我</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents"></nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if(leftPos<220){
+                postToc.css({"width":leftPos-10,"margin-left":(0-leftPos)})
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">震惊！YoloV4还没有退热，YoloV5已经发布！</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2020年5月30日
+        </date>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>本文介绍 震惊！YoloV4还没有退热，YoloV5已经发布！</p>
+<!-- raw HTML omitted -->
+<h1 id="yolov4yolov5">震惊！YoloV4还没有退热，YoloV5已经发布！</h1>
+<blockquote>
+<p>This article was original written by Jin Tian, welcome re-post, first come with <a href="https://jinfagang.github.io">https://jinfagang.github.io</a> . but please keep this copyright info, thanks, any question could be asked via wechat: <code>jintianiloveu</code></p>
+</blockquote>
+<p>来自俄罗斯的大佬刚刚发布了YoloV4的论文，以及基于darknet的完美实现，在我们还没有对YoloV4的各种骚操作，丰富的实验对比所展示出的惊叹之情退温时，YoloV5它就已经发布了！而且来源是我们熟悉的U版Yolo，来自于<a href="https://www.ultralytics.com/">https://www.ultralytics.com</a>。</p>
+<p>严格意义来说，这次Ultralytics放出的YoloV5,仍就是yolov4的实现版本（或许会有改进），只不过是完全用Pyotorch实现了。并且支持转ONNX以及CoreML等。</p>
+<p><img src="https://i.loli.net/2020/05/30/BmAHj3C4pkVx87Q.png" alt="img"></p>
+<p>来自U版YoloV5官方的更新表示：</p>
+<ul>
+<li>2020年5月27日：公开发布回购协议。 yolov3-spp（此仓库）是所有已知yolo实现中的SOTA，yolov5系列将在2020年Q2 / Q3进行架构研究和开发以提高性能。更新可能包括yolov4的CSP瓶颈，以及PANet或BiFPN头部功能。</li>
+<li>2020年5月24日：培训yolov5s / x和yolov3-spp。 yolov5m / l早期过拟合，并且还编码了137个docker早期终止代码，原因不明。由于过早拟合，yolov5l的性能不如yolov3-spp，原因不明。</li>
+<li>2020年4月1日：开始开发基于100％pytorch缩放比例的yolov3 / 4的未来模型，包括小，中，大和超大尺寸，统称为yolov5。模型将由新的基于yaml的用户友好配置文件定义，以便于构建和修改。数据集将同样使用yaml配置文件。新的训练平台将更易于使用，更难破解，并且对于训练更多种类的自定义数据集将更加强大。</li>
+</ul>
+<p>YoloV5看起来在COCO上的AP已经超越了大部分的检测器：</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>APval</th>
+<th>APtest</th>
+<th>AP50</th>
+<th>LatencyGPU</th>
+<th>FPSGPU</th>
+<th></th>
+<th>params</th>
+<th>FLOPs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>YOLOv5-s (<a href="https://drive.google.com/open?id=1Drs_Aiu7xx6S-ix95f9kNsA6ueKRpN2J">ckpt</a>)</td>
+<td>33.1</td>
+<td>33.0</td>
+<td>53.3</td>
+<td><strong>3.3ms</strong></td>
+<td><strong>303</strong></td>
+<td></td>
+<td>7.0B</td>
+<td>14.0</td>
+</tr>
+<tr>
+<td>YOLOv5-m (<a href="https://drive.google.com/open?id=1Drs_Aiu7xx6S-ix95f9kNsA6ueKRpN2J">ckpt</a>)</td>
+<td>41.5</td>
+<td>41.5</td>
+<td>61.5</td>
+<td>5.5ms</td>
+<td>182</td>
+<td></td>
+<td>25.2B</td>
+<td>50.2</td>
+</tr>
+<tr>
+<td>YOLOv5-l (<a href="https://drive.google.com/open?id=1Drs_Aiu7xx6S-ix95f9kNsA6ueKRpN2J">ckpt</a>)</td>
+<td>44.2</td>
+<td>44.5</td>
+<td>64.3</td>
+<td>9.7ms</td>
+<td>103</td>
+<td></td>
+<td>61.8B</td>
+<td>123.1</td>
+</tr>
+<tr>
+<td>YOLOv5-x (<a href="https://drive.google.com/open?id=1Drs_Aiu7xx6S-ix95f9kNsA6ueKRpN2J">ckpt</a>)</td>
+<td><strong>47.1</strong></td>
+<td><strong>47.2</strong></td>
+<td><strong>66.7</strong></td>
+<td>15.8ms</td>
+<td>63</td>
+<td></td>
+<td>123.1B</td>
+<td>245.7</td>
+</tr>
+<tr>
+<td>YOLOv3-SPP (<a href="https://drive.google.com/open?id=1Drs_Aiu7xx6S-ix95f9kNsA6ueKRpN2J">ckpt</a>)</td>
+<td>45.5</td>
+<td>45.4</td>
+<td>65.2</td>
+<td>8.9ms</td>
+<td>112</td>
+<td></td>
+<td>63.0B</td>
+<td>118.0</td>
+</tr>
+</tbody>
+</table>
+<p>当然，我们还是继续期待Ultralytics继续精进YoloV5,让这个算法达到一个更高的AP。</p>
+<p>Github网址：https://github.com/ultralytics/yolov5</p>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://jintian93.github.io">金天</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://jintian93.github.io/post/2020_05_30_10_%E9%9C%87%E6%83%8AYoloV4%E8%BF%98%E6%B2%A1%E6%9C%89%E9%80%80%E7%83%ADYoloV5%E5%B7%B2%E7%BB%8F%E5%8F%91%E5%B8%83/">https://jintian93.github.io/post/2020_05_30_10_%E9%9C%87%E6%83%8AYoloV4%E8%BF%98%E6%B2%A1%E6%9C%89%E9%80%80%E7%83%ADYoloV5%E5%B7%B2%E7%BB%8F%E5%8F%91%E5%B8%83/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/2020_05_28_14_DETR%E8%AF%A6%E8%A7%A3NLP%E9%87%8C%E9%9D%A2%E7%9A%84Transformer%E4%B9%9F%E8%83%BD%E5%81%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/">DETR详解:NLP里面的Transformer也能做目标检测？</a></li>
+        
+        <li><a href="/post/2020_05_26_10_%E4%B8%89%E5%A4%A9%E6%89%93%E9%80%A0%E4%B8%80%E4%B8%AA%E5%B1%9E%E4%BA%8E%E7%9A%84%E8%87%AA%E5%B7%B1TodoAPP/">三天打造一个属于的自己TodoAPP</a></li>
+        
+        <li><a href="/post/2020_05_21_16_3D%E5%8D%95%E7%9B%AE%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%81%9A%E8%87%AA%E5%B7%B1%E7%9A%84Tesla/">3D单目目标检测从入门到做自己的Tesla</a></li>
+        
+        <li><a href="/post/2020_05_15_13_%E4%BD%BF%E7%94%A8u2net%E6%89%93%E9%80%A0%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84remove-the-background/">使用u^2net打造属于自己的remove-the-background</a></li>
+        
+        <li><a href="/post/2020_05_12_14_EfficientDet%E8%AE%AD%E7%BB%83%E6%95%B0%E6%8D%AE%E9%9B%86anchor%E8%AE%BE%E5%AE%9A%E6%95%99%E7%A8%8B101/">EfficientDet训练数据集anchor设定教程101</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "jintian93/coment-for-blog"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://jintian93.github.io/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://jintian93.github.io">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_12_02_15_%E6%88%91%E7%9A%842021%E7%9A%84FLAG%E8%AF%95%E8%A1%8C%E7%89%88/" title="2020FLAG试行版">2020FLAG试行版</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_11_28_20_%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E6%95%99%E4%BD%A0%E8%AF%AD%E9%9F%B3%E5%90%88%E6%88%90%E5%85%A5%E9%97%A8%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AA%E4%B8%AD%E6%96%87%E8%AF%AD%E9%9F%B3tts/" title="一篇文章教你语音合成入门，训练一个中文语音tts">一篇文章教你语音合成入门，训练一个中文语音tts</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_12_02_17_%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%80%E8%BF%91%E7%9A%84%E8%A7%84%E5%88%92%E5%92%8C%E6%89%93%E7%AE%97/" title="记录一些最近的规划和打算">记录一些最近的规划和打算</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_11_07_22_JetsonNano2GB%E7%BC%96%E8%AF%91Yolov5%E5%B9%B6%E7%94%A8TensorRT%E5%8A%A0%E9%80%9F%E6%95%99%E7%A8%8B/" title="JetsonNano2GB编译Yolov5并用TensorRT加速教程">JetsonNano2GB编译Yolov5并用TensorRT加速教程</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_10_26_22_Jetson_Nano_2GB%E5%85%A8%E6%96%B0%E6%B5%8B%E8%AF%84/" title="Jetson Nano 2GB全新测评">Jetson Nano 2GB全新测评</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_09_27_12_UltraFastYoloV5%E5%8F%91%E5%B8%83%E5%9F%BA%E4%BA%8E%E5%89%AA%E6%9E%9D%E6%8A%80%E6%9C%AF%E7%9A%84%E6%A8%A1%E5%9E%8B%E5%8E%8B%E7%BC%A93ms%E6%8E%A8%E7%90%86%E7%9A%84YoloV5mAP60&#43;/" title="UltraFastYoloV5发布!基于剪枝技术的模型压缩,3ms推理的YoloV5mAP60&#43;!">UltraFastYoloV5发布!基于剪枝技术的模型压缩,3ms推理的YoloV5mAP60&#43;!</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_09_14_11_%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%90%AD%E5%BB%BAYoloV5%E6%A8%A1%E5%9E%8B%E5%B9%B6%E8%AE%AD%E7%BB%83%E6%95%99%E7%A8%8B/" title="从零开始搭建YoloV5模型并训练教程">从零开始搭建YoloV5模型并训练教程</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_08_31_12_%E8%B6%85%E5%BF%AB%E7%9A%84%E8%BD%A6%E9%81%93%E7%BA%BF%E6%A3%80%E6%B5%8BTensorRT%E9%83%A8%E7%BD%B2120fps/" title="超快的车道线检测TensorRT部署:120fps">超快的车道线检测TensorRT部署:120fps</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_08_14_17_Pytorch%E7%BD%91%E7%BB%9C%E5%8E%8B%E7%BC%A9%E7%B3%BB%E5%88%97%E6%95%99%E7%A8%8B%E4%B8%80Prune%E4%BD%A0%E7%9A%84%E6%A8%A1%E5%9E%8B/" title="Pytorch网络压缩系列教程一:Prune你的模型">Pytorch网络压缩系列教程一:Prune你的模型</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_07_31_14_%E5%85%A8%E7%BD%91%E6%9C%80%E5%85%A8%E7%9B%98%E7%82%B9%E9%82%A3%E4%BA%9B%E5%9B%BE%E5%83%8F%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%B9%BF%E6%96%B9%E5%BC%8FMosiacMixUpCutMix%E7%AD%89./" title="全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.">全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="http://manaai.cn" title="【2020】中秋特惠，神力平台终身会员优惠85折！立即开通" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1_rYHo7P2gK0jSZPxXXacQpXa-690-388.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="助力产业智慧升级，云服务器首年88元起，更有千元代金券礼包免费领！" target="_blank" style="color:red">
+                
+                    <img src="https://upload-dianshi-1255598498.file.myqcloud.com/345-7c71532bd4935fbdd9a67c1a71e577b1767b805c.200%E7%89%88%E6%9C%ACB.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="【渠道专享低折扣】11月特惠 限时2折" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1hblJl7Y2gK0jSZFgXXc5OFXa-750-400.jpg">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="http://manaai.cn" title="神力AI平台">神力AI平台</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="http://zhuanlan.zhihu.com/ai-man" title="【知乎专栏】人工智能从入门到逆天杀神">Android Gradle权威指南</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://jintian93.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+    <footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://jintian93.github.io">金天的个人博客 By 金天</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+    <script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+</body>
+
+</html>

@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>2020_02_11_11_Pytorch3D_上手学习3D的AI模型 | 金天的个人博客</title>
+    <meta property="og:title" content="2020_02_11_11_Pytorch3D_上手学习3D的AI模型 - 金天的个人博客">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2020-02-11T11:54:54&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2020-02-11T11:54:54&#43;08:00'>
+        
+    <meta name="Keywords" content="golang,go语言,go语言笔记,金天,人工智能,java,android,博客,项目管理,python,软件架构,公众号,小程序,AI项目管理">
+    <meta name="description" content="2020_02_11_11_Pytorch3D_上手学习3D的AI模型">
+        
+    <meta name="author" content="金天">
+    <meta property="og:url" content="https://jintian93.github.io/post/2020_02_11_11_Pytorch3D_%E4%B8%8A%E6%89%8B%E5%AD%A6%E4%B9%A03D%E7%9A%84AI%E6%A8%A1%E5%9E%8B/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "238864368",
+        enable_page_level_ads: true
+    });
+    </script>
+    
+
+
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://jintian93.github.io">
+                        金天的个人博客
+                    </a>
+                
+                <p class="description">专注于AI算法研发与落地应用，无人驾驶，模型压缩与加速，边缘端侧推理，AI项目管理与核心技术输出，腾讯自动驾驶专家</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://jintian93.github.io">首页</a>
+                    
+                    <a  href="https://jintian93.github.io/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://jintian93.github.io/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于">关于</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于我">关于我</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#heading">依赖安装</a></li>
+    <li><a href="#obj">开始读取一个obj文件</a></li>
+    <li><a href="#pytorch3d">使用pytorch3d拟合海豚</a></li>
+    <li><a href="#heading-1">总结</a></li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if(leftPos<220){
+                postToc.css({"width":leftPos-10,"margin-left":(0-leftPos)})
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">2020_02_11_11_Pytorch3D_上手学习3D的AI模型</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2020年2月11日
+        </date>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>本文介绍 2020_02_11_11_Pytorch3D_上手学习3D的AI模型</p>
+<!-- raw HTML omitted -->
+<h1 id="2020-02-11-11-pytorch3d-3dai">2020_02_11_11_Pytorch3D_上手学习3D的AI模型</h1>
+<blockquote>
+<p>This article was original written by Jin Tian, welcome re-post, first come with <a href="https://jinfagang.github.io">https://jinfagang.github.io</a> . but please keep this copyright info, thanks, any question could be asked via wechat: <code>jintianiloveu</code></p>
+</blockquote>
+<p>本文主要介绍pytorch3d的入门使用。最近Facebook开源了一个专门用于3D模型学习的库pytorch3d，说白了就是将3d中一些常用的操作封装起来了。那这个玩意到底有啥用呢？使用这个库又能完成什么事情呢？个人觉得这个库还是蛮有用的，它将一些常用的3D概念整理在一起，并且通过使用这个库可以完成一些基于3D的创作，对于学习入门3D的视觉生成、渲染、甚至是3d的目标检测、3维的姿态评估都大有裨益。今天的教程不难，但是可以教给大家一些很实在的干货：</p>
+<ul>
+<li>3D中点线面的概念和编程表达方式；</li>
+<li>如何绘制点云（pointcloud）；</li>
+<li>如何可视化我们的模型拟合结果；</li>
+<li>使用pytorch3d来从任意球面拟合我们给定的模型。</li>
+</ul>
+<p>闲话不多说开始上手吧～</p>
+<p><img src="https://s2.ax1x.com/2020/02/11/1oFM26.png" alt=""></p>
+<h2 id="heading">依赖安装</h2>
+<p>开始之前请先安装必要依赖，pytorch3d不支持pypi，请从conda或者github clonez安装：</p>
+<pre><code>sudo pip3 install alfred-py
+sudo pip3 install open3d
+</code></pre><h2 id="obj">开始读取一个obj文件</h2>
+<p>这里有一个包含了很多3d模型的网站：https://free3d.com/3d-model/-dolphin-v1&ndash;12175.html。打开看看里面有很多3D的模型：</p>
+<p><img src="https://i.loli.net/2020/02/11/o15HgyN8b2tuVkJ.png" alt="image.png"></p>
+<p>这些obj的模型文件都可以通过pytorch3d来读取的。我们假设你已经下载好了上面的海豚3D文件，我们来read一下看看：</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#d14"></span><span style="color:#d14">&#34;&#34;&#34;</span><span style="color:#d14"></span><span style="color:#d14">
+</span><span style="color:#d14"></span><span style="color:#d14">using pytorch3d deform a source mesh to target mesh using 3D loss functions</span><span style="color:#d14">
+</span><span style="color:#d14"></span><span style="color:#d14"></span><span style="color:#d14">
+</span><span style="color:#d14"></span><span style="color:#d14">&#34;&#34;&#34;</span>
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">os</span>
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">pytorch3d.io</span> <span style="color:#000;font-weight:bold">import</span> load_obj, save_obj
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">pytorch3d.structures</span> <span style="color:#000;font-weight:bold">import</span> Meshes
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">pytorch3d.utils</span> <span style="color:#000;font-weight:bold">import</span> ico_sphere
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">pytorch3d.ops</span> <span style="color:#000;font-weight:bold">import</span> sample_points_from_meshes
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">pytorch3d.loss</span> <span style="color:#000;font-weight:bold">import</span> (
+    chamfer_distance,
+    mesh_edge_loss,
+    mesh_normal_consistency,
+    mesh_laplacian_smoothing
+)
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">numpy</span> <span style="color:#000;font-weight:bold">as</span> <span style="color:#555">np</span>
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">torch</span>
+
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">matplotlib.pyplot</span> <span style="color:#000;font-weight:bold">as</span> <span style="color:#555">plt</span>
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">matplotlib</span> <span style="color:#000;font-weight:bold">as</span> <span style="color:#555">mpl</span>
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">mpl_toolkits.mplot3d</span> <span style="color:#000;font-weight:bold">import</span> Axes3D
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">alfred.dl.torch.common</span> <span style="color:#000;font-weight:bold">import</span> device
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">open3d</span> <span style="color:#000;font-weight:bold">as</span> <span style="color:#555">o3d</span>
+
+trg_obj <span style="color:#000;font-weight:bold">=</span> os<span style="color:#000;font-weight:bold">.</span>path<span style="color:#000;font-weight:bold">.</span>join(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">./data</span><span style="color:#d14">&#39;</span>, <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">10014_dolphin_v2_max2011_it2.obj</span><span style="color:#d14">&#39;</span>)
+
+verts, faces, aux <span style="color:#000;font-weight:bold">=</span> load_obj(trg_obj)
+<span style="color:#000;font-weight:bold">print</span>(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">verts: </span><span style="color:#d14">&#39;</span>, verts)
+<span style="color:#000;font-weight:bold">print</span>(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">faces: </span><span style="color:#d14">&#39;</span>, faces)
+<span style="color:#000;font-weight:bold">print</span>(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">aux: </span><span style="color:#d14">&#39;</span>, aux)
+</code></pre></td></tr></table>
+</div>
+</div><p>这里就需要阐述一下，研究一个3D对象，我们需要关注哪些量呢？换句话说，那些值可以用来确定一个3d物体呢？</p>
+<ul>
+<li><code>verts</code>: 其实就是3d点，我们可以将一个3d物体离散化，那么本质上它就是由一系列的3d点构成的，最常见比如雷达的3d点云；</li>
+<li><code>faces</code>: 但只有3d的坐标其实还不够，我们还需要一些链接这些点的面，这就是我们所说的faces。在pytorch3d里面，构成一个面最少的点事多少呢？应该是3，而faces的数据结构也恰好是由3个verts的idx构成的一个面；</li>
+<li><code>aux</code>:  这个指标应该就是一些渲染用的东西，我们其实只要前两个指标即可。</li>
+</ul>
+<p>##　尝试用open3d来绘制点云</p>
+<p>open3d是一个非常好的库。个人认为应该事python下面最好用的3d可视化库吧。intel出品。本篇最开始的图就是用open3d绘制的。</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">face_idx <span style="color:#000;font-weight:bold">=</span> faces<span style="color:#000;font-weight:bold">.</span>verts_idx<span style="color:#000;font-weight:bold">.</span>to(device)
+verts <span style="color:#000;font-weight:bold">=</span> verts<span style="color:#000;font-weight:bold">.</span>to(device)
+
+center <span style="color:#000;font-weight:bold">=</span> verts<span style="color:#000;font-weight:bold">.</span>mean(<span style="color:#099">0</span>)
+verts <span style="color:#000;font-weight:bold">=</span> verts <span style="color:#000;font-weight:bold">-</span> center
+scale <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">max</span>(verts<span style="color:#000;font-weight:bold">.</span>abs()<span style="color:#000;font-weight:bold">.</span>max(<span style="color:#099">0</span>)[<span style="color:#099">0</span>])
+verts <span style="color:#000;font-weight:bold">=</span> verts <span style="color:#000;font-weight:bold">/</span> scale
+
+trg_mesh <span style="color:#000;font-weight:bold">=</span> Meshes(verts<span style="color:#000;font-weight:bold">=</span>[verts], faces<span style="color:#000;font-weight:bold">=</span>[face_idx])
+src_mesh <span style="color:#000;font-weight:bold">=</span> ico_sphere(<span style="color:#099">4</span>, device)
+
+<span style="color:#998;font-style:italic"># we can print verts as well, using open3d</span>
+verts_points <span style="color:#000;font-weight:bold">=</span> verts<span style="color:#000;font-weight:bold">.</span>clone()<span style="color:#000;font-weight:bold">.</span>detach()<span style="color:#000;font-weight:bold">.</span>cpu()<span style="color:#000;font-weight:bold">.</span>numpy()
+<span style="color:#000;font-weight:bold">print</span>(verts_points)
+pcobj <span style="color:#000;font-weight:bold">=</span> o3d<span style="color:#000;font-weight:bold">.</span>geometry<span style="color:#000;font-weight:bold">.</span>PointCloud()
+pcobj<span style="color:#000;font-weight:bold">.</span>points <span style="color:#000;font-weight:bold">=</span> o3d<span style="color:#000;font-weight:bold">.</span>utility<span style="color:#000;font-weight:bold">.</span>Vector3dVector(verts_points)
+o3d<span style="color:#000;font-weight:bold">.</span>visualization<span style="color:#000;font-weight:bold">.</span>draw_geometries([pcobj])
+
+</code></pre></td></tr></table>
+</div>
+</div><p>我们接着上面的代码继续，使用open3d就可以得到上图的结果：</p>
+<p><img src="https://s2.ax1x.com/2020/02/11/1oFM26.png" alt=""></p>
+<p>最后给大家安利一下<strong>alfred-py</strong>, 这个库也拥有一些3d的可视化操作，比如在3d点云上画3d的boundingbox：</p>
+<p><img src="https://s2.ax1x.com/2020/02/11/1o9VhV.png" alt=""></p>
+<p>github地址：</p>
+<p><a href="https://github.com/jinfagang/alfred">https://github.com/jinfagang/alfred</a></p>
+<h2 id="pytorch3d">使用pytorch3d拟合海豚</h2>
+<p>我们将使用pytorch3d来拟合海豚的可视化结果：</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">plot_pointcloud</span>(mesh, title<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">&#34;</span>):
+    verts <span style="color:#000;font-weight:bold">=</span> mesh<span style="color:#000;font-weight:bold">.</span>verts_packed()
+    faces <span style="color:#000;font-weight:bold">=</span> mesh<span style="color:#000;font-weight:bold">.</span>faces_packed()
+    x, y, z <span style="color:#000;font-weight:bold">=</span> verts<span style="color:#000;font-weight:bold">.</span>clone()<span style="color:#000;font-weight:bold">.</span>detach()<span style="color:#000;font-weight:bold">.</span>cpu()<span style="color:#000;font-weight:bold">.</span>unbind(<span style="color:#099">1</span>)    
+    fig <span style="color:#000;font-weight:bold">=</span> plt<span style="color:#000;font-weight:bold">.</span>figure(figsize<span style="color:#000;font-weight:bold">=</span>(<span style="color:#099">5</span>, <span style="color:#099">5</span>))
+    ax <span style="color:#000;font-weight:bold">=</span> Axes3D(fig)
+    ax<span style="color:#000;font-weight:bold">.</span>scatter3D(x, z, <span style="color:#000;font-weight:bold">-</span>y)
+    ax<span style="color:#000;font-weight:bold">.</span>set_xlabel(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">x</span><span style="color:#d14">&#39;</span>)
+    ax<span style="color:#000;font-weight:bold">.</span>set_ylabel(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">z</span><span style="color:#d14">&#39;</span>)
+    ax<span style="color:#000;font-weight:bold">.</span>set_zlabel(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">y</span><span style="color:#d14">&#39;</span>)
+    ax<span style="color:#000;font-weight:bold">.</span>set_title(title)
+    plt<span style="color:#000;font-weight:bold">.</span>show()
+    
+<span style="color:#998;font-style:italic"># start optimization loop</span>
+deform_verts <span style="color:#000;font-weight:bold">=</span> torch<span style="color:#000;font-weight:bold">.</span>full(src_mesh<span style="color:#000;font-weight:bold">.</span>verts_packed()<span style="color:#000;font-weight:bold">.</span>shape, <span style="color:#099">0</span>, device<span style="color:#000;font-weight:bold">=</span>device, requires_grad<span style="color:#000;font-weight:bold">=</span><span style="color:#999">True</span>)
+optimizer <span style="color:#000;font-weight:bold">=</span> torch<span style="color:#000;font-weight:bold">.</span>optim<span style="color:#000;font-weight:bold">.</span>SGD([deform_verts], lr<span style="color:#000;font-weight:bold">=</span><span style="color:#099">1.0</span>, momentum<span style="color:#000;font-weight:bold">=</span><span style="color:#099">0.9</span>)
+
+
+Niter <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">2000</span>
+<span style="color:#998;font-style:italic"># Weight for the chamfer loss</span>
+w_chamfer <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">1.0</span> 
+<span style="color:#998;font-style:italic"># Weight for mesh edge loss</span>
+w_edge <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">1.0</span> 
+<span style="color:#998;font-style:italic"># Weight for mesh normal consistency</span>
+w_normal <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0.01</span> 
+<span style="color:#998;font-style:italic"># Weight for mesh laplacian smoothing</span>
+w_laplacian <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0.1</span> 
+<span style="color:#998;font-style:italic"># Plot period for the losses</span>
+plot_period <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">250</span>
+
+chamfer_losses <span style="color:#000;font-weight:bold">=</span> []
+laplacian_losses <span style="color:#000;font-weight:bold">=</span> []
+edge_losses <span style="color:#000;font-weight:bold">=</span> []
+normal_losses <span style="color:#000;font-weight:bold">=</span> []
+
+<span style="color:#000;font-weight:bold">for</span> i <span style="color:#000;font-weight:bold">in</span> <span style="color:#0086b3">range</span>(Niter):
+    <span style="color:#998;font-style:italic"># Initialize optimizer</span>
+    optimizer<span style="color:#000;font-weight:bold">.</span>zero_grad()
+    <span style="color:#998;font-style:italic"># Deform the mesh</span>
+    new_src_mesh <span style="color:#000;font-weight:bold">=</span> src_mesh<span style="color:#000;font-weight:bold">.</span>offset_verts(deform_verts)
+    <span style="color:#998;font-style:italic"># We sample 5k points from the surface of each mesh </span>
+    sample_trg <span style="color:#000;font-weight:bold">=</span> sample_points_from_meshes(trg_mesh, <span style="color:#099">5000</span>)
+    sample_src <span style="color:#000;font-weight:bold">=</span> sample_points_from_meshes(new_src_mesh, <span style="color:#099">5000</span>)
+    <span style="color:#998;font-style:italic"># We compare the two sets of pointclouds by computing (a) the chamfer loss</span>
+    loss_chamfer, _ <span style="color:#000;font-weight:bold">=</span> chamfer_distance(sample_trg, sample_src)
+    <span style="color:#998;font-style:italic"># and (b) the edge length of the predicted mesh</span>
+    loss_edge <span style="color:#000;font-weight:bold">=</span> mesh_edge_loss(new_src_mesh)
+    <span style="color:#998;font-style:italic"># mesh normal consistency</span>
+    loss_normal <span style="color:#000;font-weight:bold">=</span> mesh_normal_consistency(new_src_mesh)
+    <span style="color:#998;font-style:italic"># mesh laplacian smoothing</span>
+    loss_laplacian <span style="color:#000;font-weight:bold">=</span> mesh_laplacian_smoothing(new_src_mesh, method<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">uniform</span><span style="color:#d14">&#34;</span>)
+    <span style="color:#998;font-style:italic"># Weighted sum of the losses</span>
+    loss <span style="color:#000;font-weight:bold">=</span> loss_chamfer <span style="color:#000;font-weight:bold">*</span> w_chamfer <span style="color:#000;font-weight:bold">+</span> loss_edge <span style="color:#000;font-weight:bold">*</span> w_edge <span style="color:#000;font-weight:bold">+</span> loss_normal <span style="color:#000;font-weight:bold">*</span> w_normal <span style="color:#000;font-weight:bold">+</span> loss_laplacian <span style="color:#000;font-weight:bold">*</span> w_laplacian
+    <span style="color:#998;font-style:italic"># Print the losses</span>
+    <span style="color:#000;font-weight:bold">print</span>(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">i: {}, loss: {}</span><span style="color:#d14">&#39;</span><span style="color:#000;font-weight:bold">.</span>format(i, loss))
+    <span style="color:#998;font-style:italic"># Save the losses for plotting</span>
+    chamfer_losses<span style="color:#000;font-weight:bold">.</span>append(loss_chamfer)
+    edge_losses<span style="color:#000;font-weight:bold">.</span>append(loss_edge)
+    normal_losses<span style="color:#000;font-weight:bold">.</span>append(loss_normal)
+    laplacian_losses<span style="color:#000;font-weight:bold">.</span>append(loss_laplacian)
+    <span style="color:#998;font-style:italic"># Plot mesh</span>
+    <span style="color:#000;font-weight:bold">if</span> i <span style="color:#000;font-weight:bold">%</span> plot_period <span style="color:#000;font-weight:bold">==</span> <span style="color:#099">0</span>:
+        plot_pointcloud(new_src_mesh, title<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">iter: </span><span style="color:#d14">%d</span><span style="color:#d14">&#34;</span> <span style="color:#000;font-weight:bold">%</span> i)
+    <span style="color:#998;font-style:italic"># Optimization step</span>
+    loss<span style="color:#000;font-weight:bold">.</span>backward()
+    optimizer<span style="color:#000;font-weight:bold">.</span>step()
+
+</code></pre></td></tr></table>
+</div>
+</div><p>经过几千次迭代，我们就可以从一个任意的曲面，重构出海豚的3d空间结构：</p>
+<p><img src="https://i.loli.net/2020/02/11/LZdhC4B6eWiJpqr.png" alt="image.png"></p>
+<p><img src="https://i.loli.net/2020/02/11/ElWysgV6IhOFPGi.png" alt="image.png"></p>
+<h2 id="heading-1">总结</h2>
+<p>本文只是带大家入门pytorch3d库，更多关于3d目标检测，3d姿态估计的干货教程文章，欢迎大家订阅本专栏，你将在第一时间获取我们的教程。</p>
+<p>欢迎大家加入神力人工智能学习社区：http://manaai.cn</p>
+<p><img src="/home/jintian/Downloads/1581394916844.png" alt="1581394916844"></p>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://jintian93.github.io">金天</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://jintian93.github.io/post/2020_02_11_11_Pytorch3D_%E4%B8%8A%E6%89%8B%E5%AD%A6%E4%B9%A03D%E7%9A%84AI%E6%A8%A1%E5%9E%8B/">https://jintian93.github.io/post/2020_02_11_11_Pytorch3D_%E4%B8%8A%E6%89%8B%E5%AD%A6%E4%B9%A03D%E7%9A%84AI%E6%A8%A1%E5%9E%8B/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/2020_01_10_10_StyleGAN2%E4%BA%BA%E8%84%B8%E5%B1%9E%E6%80%A7%E7%BC%96%E8%BE%91-%E7%A0%B4%E8%A7%A3FaceAPP/">2020_01_10_10_StyleGAN2人脸属性编辑-破解FaceAPP</a></li>
+        
+        <li><a href="/post/2020_01_02_01_2020%E7%9A%84%E5%B0%8F%E7%9B%AE%E6%A0%87/">2020_01_02_01_2020的小目标</a></li>
+        
+        <li><a href="/post/2019_12_13_11_CUDA%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E5%88%9D%E5%85%A5%E6%B1%9F%E6%B9%96/">2019_12_13_11_CUDA编程实战：初入江湖</a></li>
+        
+        <li><a href="/post/2019_11_14_03_docker%E8%91%B5%E8%8A%B1%E5%AE%9D%E5%85%B8/">2019_11_14_03_docker葵花宝典</a></li>
+        
+        <li><a href="/post/2019_10_22_14_Detectron2%E8%AE%AD%E7%BB%83%E8%87%AA%E5%B7%B1%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86/">Detectron2训练自己的实例分割数据集</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "jintian93/coment-for-blog"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://jintian93.github.io/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://jintian93.github.io">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_12_02_15_%E6%88%91%E7%9A%842021%E7%9A%84FLAG%E8%AF%95%E8%A1%8C%E7%89%88/" title="2020FLAG试行版">2020FLAG试行版</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_11_28_20_%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E6%95%99%E4%BD%A0%E8%AF%AD%E9%9F%B3%E5%90%88%E6%88%90%E5%85%A5%E9%97%A8%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AA%E4%B8%AD%E6%96%87%E8%AF%AD%E9%9F%B3tts/" title="一篇文章教你语音合成入门，训练一个中文语音tts">一篇文章教你语音合成入门，训练一个中文语音tts</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_12_02_17_%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%80%E8%BF%91%E7%9A%84%E8%A7%84%E5%88%92%E5%92%8C%E6%89%93%E7%AE%97/" title="记录一些最近的规划和打算">记录一些最近的规划和打算</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_11_07_22_JetsonNano2GB%E7%BC%96%E8%AF%91Yolov5%E5%B9%B6%E7%94%A8TensorRT%E5%8A%A0%E9%80%9F%E6%95%99%E7%A8%8B/" title="JetsonNano2GB编译Yolov5并用TensorRT加速教程">JetsonNano2GB编译Yolov5并用TensorRT加速教程</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_10_26_22_Jetson_Nano_2GB%E5%85%A8%E6%96%B0%E6%B5%8B%E8%AF%84/" title="Jetson Nano 2GB全新测评">Jetson Nano 2GB全新测评</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_09_27_12_UltraFastYoloV5%E5%8F%91%E5%B8%83%E5%9F%BA%E4%BA%8E%E5%89%AA%E6%9E%9D%E6%8A%80%E6%9C%AF%E7%9A%84%E6%A8%A1%E5%9E%8B%E5%8E%8B%E7%BC%A93ms%E6%8E%A8%E7%90%86%E7%9A%84YoloV5mAP60&#43;/" title="UltraFastYoloV5发布!基于剪枝技术的模型压缩,3ms推理的YoloV5mAP60&#43;!">UltraFastYoloV5发布!基于剪枝技术的模型压缩,3ms推理的YoloV5mAP60&#43;!</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_09_14_11_%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%90%AD%E5%BB%BAYoloV5%E6%A8%A1%E5%9E%8B%E5%B9%B6%E8%AE%AD%E7%BB%83%E6%95%99%E7%A8%8B/" title="从零开始搭建YoloV5模型并训练教程">从零开始搭建YoloV5模型并训练教程</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_08_31_12_%E8%B6%85%E5%BF%AB%E7%9A%84%E8%BD%A6%E9%81%93%E7%BA%BF%E6%A3%80%E6%B5%8BTensorRT%E9%83%A8%E7%BD%B2120fps/" title="超快的车道线检测TensorRT部署:120fps">超快的车道线检测TensorRT部署:120fps</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_08_14_17_Pytorch%E7%BD%91%E7%BB%9C%E5%8E%8B%E7%BC%A9%E7%B3%BB%E5%88%97%E6%95%99%E7%A8%8B%E4%B8%80Prune%E4%BD%A0%E7%9A%84%E6%A8%A1%E5%9E%8B/" title="Pytorch网络压缩系列教程一:Prune你的模型">Pytorch网络压缩系列教程一:Prune你的模型</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_07_31_14_%E5%85%A8%E7%BD%91%E6%9C%80%E5%85%A8%E7%9B%98%E7%82%B9%E9%82%A3%E4%BA%9B%E5%9B%BE%E5%83%8F%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%B9%BF%E6%96%B9%E5%BC%8FMosiacMixUpCutMix%E7%AD%89./" title="全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.">全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="http://manaai.cn" title="【2020】中秋特惠，神力平台终身会员优惠85折！立即开通" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1_rYHo7P2gK0jSZPxXXacQpXa-690-388.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="助力产业智慧升级，云服务器首年88元起，更有千元代金券礼包免费领！" target="_blank" style="color:red">
+                
+                    <img src="https://upload-dianshi-1255598498.file.myqcloud.com/345-7c71532bd4935fbdd9a67c1a71e577b1767b805c.200%E7%89%88%E6%9C%ACB.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="【渠道专享低折扣】11月特惠 限时2折" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1hblJl7Y2gK0jSZFgXXc5OFXa-750-400.jpg">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="http://manaai.cn" title="神力AI平台">神力AI平台</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="http://zhuanlan.zhihu.com/ai-man" title="【知乎专栏】人工智能从入门到逆天杀神">Android Gradle权威指南</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://jintian93.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+    <footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://jintian93.github.io">金天的个人博客 By 金天</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+    <script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+</body>
+
+</html>

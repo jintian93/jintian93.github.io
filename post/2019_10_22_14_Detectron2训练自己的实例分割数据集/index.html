@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Detectron2训练自己的实例分割数据集 | 金天的个人博客</title>
+    <meta property="og:title" content="Detectron2训练自己的实例分割数据集 - 金天的个人博客">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2019-10-22T14:37:35&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2019-10-22T14:37:35&#43;08:00'>
+        
+    <meta name="Keywords" content="golang,go语言,go语言笔记,金天,人工智能,java,android,博客,项目管理,python,软件架构,公众号,小程序,AI项目管理">
+    <meta name="description" content="Detectron2训练自己的实例分割数据集">
+        
+    <meta name="author" content="金天">
+    <meta property="og:url" content="https://jintian93.github.io/post/2019_10_22_14_Detectron2%E8%AE%AD%E7%BB%83%E8%87%AA%E5%B7%B1%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "238864368",
+        enable_page_level_ads: true
+    });
+    </script>
+    
+
+
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://jintian93.github.io">
+                        金天的个人博客
+                    </a>
+                
+                <p class="description">专注于AI算法研发与落地应用，无人驾驶，模型压缩与加速，边缘端侧推理，AI项目管理与核心技术输出，腾讯自动驾驶专家</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://jintian93.github.io">首页</a>
+                    
+                    <a  href="https://jintian93.github.io/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://jintian93.github.io/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于">关于</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于我">关于我</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#setup-detectron2">Setup Detectron2</a></li>
+    <li><a href="#heading">训练</a></li>
+    <li><a href="#detectron2-cityscapes">Detectron2 训练Cityscapes实例分割</a></li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if(leftPos<220){
+                postToc.css({"width":leftPos-10,"margin-left":(0-leftPos)})
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">Detectron2训练自己的实例分割数据集</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年10月22日
+        </date>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>本文介绍 Detectron2训练自己的实例分割数据集</p>
+<!-- raw HTML omitted -->
+<h1 id="detectron2">Detectron2训练自己的实例分割数据集</h1>
+<blockquote>
+<p>This article was original written by Jin Tian, welcome re-post, first come with <a href="https://jinfagang.github.io">https://jinfagang.github.io</a> . but please keep this copyright info, thanks, any question could be asked via wechat: <code>jintianiloveu</code></p>
+</blockquote>
+<p>本文介绍如何构造自己的类coco数据集，并用detectron2来训练并预测。实际上detectron2出来已经有几天了。但这个框架个人感觉离真正工业使用还有点距离，首先第一点是不好部署，其次是相关的其他模型导出支持比较差，比如不支持onnx，同时即便是导出的onnx模型也很难用上一些加速框架进行加速，比如不支持TensorRT。但如果你不是追求速度，用python做推理也是可以的，并且最关键的是，你可以用你的数据集训练你的模型，或者是在这个框架上增加一些自己的修改，看看效果是不是更好之类。</p>
+<p>首先看看这个如何来训练自己的数据集。我们今天要用的数据是这个：</p>
+<pre><code>wget https://github.com/Tony607/detectron2_instance_segmentation_demo/releases/download/V0.1/data.zip
+</code></pre><p>这篇文章很大借鉴于原作者的一些尝试，感兴趣的朋友可以给他github一个star，人家也不容易。这个data是一个非常非常适合来测试分割的一个微型数据集，小到什么程度？只有那么25张图片。。</p>
+<p><img src="https://s2.ax1x.com/2019/10/23/KYfqsI.png" alt="1571727354012"></p>
+<p>类别大概是:</p>
+<pre><code>cats: [{'supercategory': 'date', 'id': 1, 'name': 'date'}, {'supercategory': 'fig', 'id': 2, 'name': 'fig'}, {'supercategory': 'hazelnut', 'id': 3, 'name': 'hazelnut'}]
+</code></pre><p>（这里date的意思是枣椰子，fig的意思是无花果，hazelnut是榛子。)</p>
+<p>如果你下载好了数据，那么基本上我们可以开始了。大家可以看到这个数据集还有一个<code>trainval.json</code>，完全是按照coco的标注方式来标注的。coco的json格式也是目前比较通用的是instance segmentation 或者是Panoptic segmentation标注格式。</p>
+<h2 id="setup-detectron2">Setup Detectron2</h2>
+<p>关于如何安装detectron2这里不展开叙述，大家可以按照github给予的步骤来。这里给大家几点提醒：</p>
+<ul>
+<li>要python3.6;</li>
+<li>要pytorch1.3.</li>
+</ul>
+<p>其他的没有了。</p>
+<h2 id="heading">训练</h2>
+<p>首先看一下这个非常小非常迷你的数据集，在100次训练之后的效果：</p>
+<p><img src="https://s2.ax1x.com/2019/10/23/KYfzFS.png" alt="1571747246356"></p>
+<p>可以看出来，这个效果还是非常不错的啊。训练的脚本也非常简单：</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">random</span>
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">detectron2.utils.visualizer</span> <span style="color:#000;font-weight:bold">import</span> Visualizer
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">detectron2.data.catalog</span> <span style="color:#000;font-weight:bold">import</span> MetadataCatalog, DatasetCatalog
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">fruitsnuts_data</span>
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">cv2</span>
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">detectron2.engine</span> <span style="color:#000;font-weight:bold">import</span> DefaultTrainer
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">detectron2.config</span> <span style="color:#000;font-weight:bold">import</span> get_cfg
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">os</span>
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">detectron2.engine.defaults</span> <span style="color:#000;font-weight:bold">import</span> DefaultPredictor
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">detectron2.utils.visualizer</span> <span style="color:#000;font-weight:bold">import</span> ColorMode
+
+
+fruits_nuts_metadata <span style="color:#000;font-weight:bold">=</span> MetadataCatalog<span style="color:#000;font-weight:bold">.</span>get(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">fruits_nuts</span><span style="color:#d14">&#34;</span>)
+
+
+<span style="color:#000;font-weight:bold">if</span> __name__ <span style="color:#000;font-weight:bold">==</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">__main__</span><span style="color:#d14">&#34;</span>:
+    cfg <span style="color:#000;font-weight:bold">=</span> get_cfg()
+    cfg<span style="color:#000;font-weight:bold">.</span>merge_from_file(
+        <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">../../configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml</span><span style="color:#d14">&#34;</span>
+    )
+    cfg<span style="color:#000;font-weight:bold">.</span>MODEL<span style="color:#000;font-weight:bold">.</span>WEIGHTS <span style="color:#000;font-weight:bold">=</span> os<span style="color:#000;font-weight:bold">.</span>path<span style="color:#000;font-weight:bold">.</span>join(cfg<span style="color:#000;font-weight:bold">.</span>OUTPUT_DIR, <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">model_final.pth</span><span style="color:#d14">&#34;</span>)
+    <span style="color:#000;font-weight:bold">print</span>(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">loading from: {}</span><span style="color:#d14">&#39;</span><span style="color:#000;font-weight:bold">.</span>format(cfg<span style="color:#000;font-weight:bold">.</span>MODEL<span style="color:#000;font-weight:bold">.</span>WEIGHTS))
+    cfg<span style="color:#000;font-weight:bold">.</span>MODEL<span style="color:#000;font-weight:bold">.</span>ROI_HEADS<span style="color:#000;font-weight:bold">.</span>SCORE_THRESH_TEST <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0.5</span>   <span style="color:#998;font-style:italic"># set the testing threshold for this model</span>
+    cfg<span style="color:#000;font-weight:bold">.</span>MODEL<span style="color:#000;font-weight:bold">.</span>ROI_HEADS<span style="color:#000;font-weight:bold">.</span>NUM_CLASSES <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">3</span>
+    cfg<span style="color:#000;font-weight:bold">.</span>DATASETS<span style="color:#000;font-weight:bold">.</span>TEST <span style="color:#000;font-weight:bold">=</span> (<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">fruits_nuts</span><span style="color:#d14">&#34;</span>, )
+    predictor <span style="color:#000;font-weight:bold">=</span> DefaultPredictor(cfg)
+
+    data_f <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">./data/images/2.jpg</span><span style="color:#d14">&#39;</span>
+    im <span style="color:#000;font-weight:bold">=</span> cv2<span style="color:#000;font-weight:bold">.</span>imread(data_f)
+    outputs <span style="color:#000;font-weight:bold">=</span> predictor(im)
+    v <span style="color:#000;font-weight:bold">=</span> Visualizer(im[:, :, ::<span style="color:#000;font-weight:bold">-</span><span style="color:#099">1</span>],
+                   metadata<span style="color:#000;font-weight:bold">=</span>fruits_nuts_metadata,
+                   scale<span style="color:#000;font-weight:bold">=</span><span style="color:#099">0.8</span>,
+                   instance_mode<span style="color:#000;font-weight:bold">=</span>ColorMode<span style="color:#000;font-weight:bold">.</span>IMAGE_BW   <span style="color:#998;font-style:italic"># remove the colors of unsegmented pixels</span>
+                   )
+    v <span style="color:#000;font-weight:bold">=</span> v<span style="color:#000;font-weight:bold">.</span>draw_instance_predictions(outputs[<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">instances</span><span style="color:#d14">&#34;</span>]<span style="color:#000;font-weight:bold">.</span>to(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">cpu</span><span style="color:#d14">&#34;</span>))
+    img <span style="color:#000;font-weight:bold">=</span> v<span style="color:#000;font-weight:bold">.</span>get_image()[:, :, ::<span style="color:#000;font-weight:bold">-</span><span style="color:#099">1</span>]
+    cv2<span style="color:#000;font-weight:bold">.</span>imshow(<span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">rr</span><span style="color:#d14">&#39;</span>, img)
+    cv2<span style="color:#000;font-weight:bold">.</span>waitKey(<span style="color:#099">0</span>)
+
+</code></pre></td></tr></table>
+</div>
+</div><p>大家可能觉得这个instance segmention训练的太容易，那么来挑战难度大一点的？</p>
+<p>确实，这个坚果数据集实在是太简单了，简单到我们甚至打印不出任何训练过程，一眨眼模型就训练好了。那就来个难度大一点的吧，我们将用Detectron2训练Cityscapes的实例分割！</p>
+<h2 id="detectron2-cityscapes">Detectron2 训练Cityscapes实例分割</h2>
+<p>尽管在Detectron2里面有Cityscapes的数据dataloader，但我们并不打算用它，相反，我们觉得使用统一化的coco数据集格式能够更好的让数据fit。当我们决定做这件事情的时候犯难了。如何从Cityscapes转到coco？</p>
+<p>好在有这个需求的人不少，这值得我们开发一个工具来转它。我们维护的现成的工具脚本可以在这里找到：</p>
+<p><a href="https://github.com/jinfagang/cityscapestococo">https://github.com/jinfagang/cityscapestococo</a></p>
+<p>实际上我们将数据转到coco之后，发现效果我们想象的还好，因为这些标注都非常精准，并且包含了我们感兴趣的常用类别，比如car，truck，rider，cyclist，motor-cycle等：</p>
+<p><img src="https://s2.ax1x.com/2019/10/23/KYh9zj.png" alt="1571815549311"></p>
+<p>这是可视化的效果。这些步骤与我们上面训练坚果数据集的步骤差不多，大家仿造步骤来，首先可视化数据确保我们的数据是准确无误的。那么接下里的事情就很简单了。</p>
+<p><img src="https://s2.ax1x.com/2019/10/23/KYhAe0.png" alt="1571815640504"></p>
+<p>看起来似乎还不错，这些类别众多而精准，接下来开始train：</p>
+<p><img src="https://s2.ax1x.com/2019/10/23/KY4F9e.png" alt="1571818955191"></p>
+<p>看起来似乎还不错。现在训练一个instance segmentation 简直是太简单了。</p>
+<p>那么这个instance segmention模型训练完成之后是一种什么样的效果呢？模型还在训练，我们等下一期技术文章发布之后，给大家分享一下结果，同时，告诉大家一个好消息：</p>
+<ol>
+<li>类似于MaskRCNN这样的模型速度是很难在实际场景中用起来的，原因也很简单，我们都需要realtime的东西，这速度差强人意，但是否有人尝试更轻便的backbone呢？不得而知，不过好消息是实际上通过一些加速框架，是可以把MaskRCNN加速到realtime的。而这些，我们等到detectron2go发布之后，或许会看得到一些好消息。</li>
+</ol>
+<blockquote>
+<p>本文首发于MANA AI社区，如果你对AI感兴趣，欢迎加入我们的社区一起交流：http://t.manaai.cn</p>
+</blockquote>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://jintian93.github.io">金天</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://jintian93.github.io/post/2019_10_22_14_Detectron2%E8%AE%AD%E7%BB%83%E8%87%AA%E5%B7%B1%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86/">https://jintian93.github.io/post/2019_10_22_14_Detectron2%E8%AE%AD%E7%BB%83%E8%87%AA%E5%B7%B1%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/2019_10_15_12_%E4%BD%BF%E7%94%A8ONNX&#43;TensorRT%E9%83%A8%E7%BD%B2%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E5%92%8C%E5%85%B3%E9%94%AE%E7%82%B9250fps/">使用ONNX&#43;TensorRT部署人脸检测和关键点250fps</a></li>
+        
+        <li><a href="/post/2019_10_08_15_ONNXRuntime%E9%87%87%E7%94%A8TensorRT%E5%90%8E%E7%AB%AF%E5%BF%AB%E9%80%9F%E6%8E%A8%E7%90%86/">ONNXRuntime采用TensorRT后端快速推理</a></li>
+        
+        <li><a href="/post/2019_09_27_15_ONNX%E9%87%8C%E9%9D%A2%E7%9A%84%E5%85%83%E8%BF%90%E7%AE%97/">ONNX里面的元运算</a></li>
+        
+        <li><a href="/post/2019_09_26_10_maskrcnn-benchmark%E8%BD%AConnx%E5%86%8D%E8%BD%ACTensorRT%E5%AE%9E%E5%BD%95/">maskrcnn-benchmark转onnx再转TensorRT实录</a></li>
+        
+        <li><a href="/post/2019_09_19_15_pytorch%E9%87%8C%E9%9D%A2%E7%9A%84torch.gather%E6%93%8D%E4%BD%9C/">pytorch里面的torch.gather操作</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "jintian93/coment-for-blog"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://jintian93.github.io/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://jintian93.github.io">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_12_02_15_%E6%88%91%E7%9A%842021%E7%9A%84FLAG%E8%AF%95%E8%A1%8C%E7%89%88/" title="2020FLAG试行版">2020FLAG试行版</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_11_28_20_%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E6%95%99%E4%BD%A0%E8%AF%AD%E9%9F%B3%E5%90%88%E6%88%90%E5%85%A5%E9%97%A8%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AA%E4%B8%AD%E6%96%87%E8%AF%AD%E9%9F%B3tts/" title="一篇文章教你语音合成入门，训练一个中文语音tts">一篇文章教你语音合成入门，训练一个中文语音tts</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_12_02_17_%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%80%E8%BF%91%E7%9A%84%E8%A7%84%E5%88%92%E5%92%8C%E6%89%93%E7%AE%97/" title="记录一些最近的规划和打算">记录一些最近的规划和打算</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_11_07_22_JetsonNano2GB%E7%BC%96%E8%AF%91Yolov5%E5%B9%B6%E7%94%A8TensorRT%E5%8A%A0%E9%80%9F%E6%95%99%E7%A8%8B/" title="JetsonNano2GB编译Yolov5并用TensorRT加速教程">JetsonNano2GB编译Yolov5并用TensorRT加速教程</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_10_26_22_Jetson_Nano_2GB%E5%85%A8%E6%96%B0%E6%B5%8B%E8%AF%84/" title="Jetson Nano 2GB全新测评">Jetson Nano 2GB全新测评</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_09_27_12_UltraFastYoloV5%E5%8F%91%E5%B8%83%E5%9F%BA%E4%BA%8E%E5%89%AA%E6%9E%9D%E6%8A%80%E6%9C%AF%E7%9A%84%E6%A8%A1%E5%9E%8B%E5%8E%8B%E7%BC%A93ms%E6%8E%A8%E7%90%86%E7%9A%84YoloV5mAP60&#43;/" title="UltraFastYoloV5发布!基于剪枝技术的模型压缩,3ms推理的YoloV5mAP60&#43;!">UltraFastYoloV5发布!基于剪枝技术的模型压缩,3ms推理的YoloV5mAP60&#43;!</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_09_14_11_%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%90%AD%E5%BB%BAYoloV5%E6%A8%A1%E5%9E%8B%E5%B9%B6%E8%AE%AD%E7%BB%83%E6%95%99%E7%A8%8B/" title="从零开始搭建YoloV5模型并训练教程">从零开始搭建YoloV5模型并训练教程</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_08_31_12_%E8%B6%85%E5%BF%AB%E7%9A%84%E8%BD%A6%E9%81%93%E7%BA%BF%E6%A3%80%E6%B5%8BTensorRT%E9%83%A8%E7%BD%B2120fps/" title="超快的车道线检测TensorRT部署:120fps">超快的车道线检测TensorRT部署:120fps</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_08_14_17_Pytorch%E7%BD%91%E7%BB%9C%E5%8E%8B%E7%BC%A9%E7%B3%BB%E5%88%97%E6%95%99%E7%A8%8B%E4%B8%80Prune%E4%BD%A0%E7%9A%84%E6%A8%A1%E5%9E%8B/" title="Pytorch网络压缩系列教程一:Prune你的模型">Pytorch网络压缩系列教程一:Prune你的模型</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_07_31_14_%E5%85%A8%E7%BD%91%E6%9C%80%E5%85%A8%E7%9B%98%E7%82%B9%E9%82%A3%E4%BA%9B%E5%9B%BE%E5%83%8F%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%B9%BF%E6%96%B9%E5%BC%8FMosiacMixUpCutMix%E7%AD%89./" title="全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.">全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="http://manaai.cn" title="【2020】中秋特惠，神力平台终身会员优惠85折！立即开通" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1_rYHo7P2gK0jSZPxXXacQpXa-690-388.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="助力产业智慧升级，云服务器首年88元起，更有千元代金券礼包免费领！" target="_blank" style="color:red">
+                
+                    <img src="https://upload-dianshi-1255598498.file.myqcloud.com/345-7c71532bd4935fbdd9a67c1a71e577b1767b805c.200%E7%89%88%E6%9C%ACB.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="【渠道专享低折扣】11月特惠 限时2折" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1hblJl7Y2gK0jSZFgXXc5OFXa-750-400.jpg">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="http://manaai.cn" title="神力AI平台">神力AI平台</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="http://zhuanlan.zhihu.com/ai-man" title="【知乎专栏】人工智能从入门到逆天杀神">Android Gradle权威指南</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://jintian93.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+    <footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://jintian93.github.io">金天的个人博客 By 金天</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+    <script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+</body>
+
+</html>

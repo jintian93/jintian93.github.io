@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>使用ONNX&#43;TensorRT部署人脸检测和关键点250fps | 金天的个人博客</title>
+    <meta property="og:title" content="使用ONNX&#43;TensorRT部署人脸检测和关键点250fps - 金天的个人博客">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2019-10-15T12:34:11&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2019-10-15T12:34:11&#43;08:00'>
+        
+    <meta name="Keywords" content="golang,go语言,go语言笔记,金天,人工智能,java,android,博客,项目管理,python,软件架构,公众号,小程序,AI项目管理">
+    <meta name="description" content="使用ONNX&#43;TensorRT部署人脸检测和关键点250fps">
+        
+    <meta name="author" content="金天">
+    <meta property="og:url" content="https://jintian93.github.io/post/2019_10_15_12_%E4%BD%BF%E7%94%A8ONNX&#43;TensorRT%E9%83%A8%E7%BD%B2%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E5%92%8C%E5%85%B3%E9%94%AE%E7%82%B9250fps/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "238864368",
+        enable_page_level_ads: true
+    });
+    </script>
+    
+
+
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://jintian93.github.io">
+                        金天的个人博客
+                    </a>
+                
+                <p class="description">专注于AI算法研发与落地应用，无人驾驶，模型压缩与加速，边缘端侧推理，AI项目管理与核心技术输出，腾讯自动驾驶专家</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://jintian93.github.io">首页</a>
+                    
+                    <a  href="https://jintian93.github.io/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://jintian93.github.io/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于">关于</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于我">关于我</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#onnx">为什么要用onnx</a></li>
+    <li><a href="#retinaface">Retinaface模型简单介绍</a></li>
+    <li><a href="#tensorrt-c">TensorRT C++推理</a></li>
+    <li><a href="#heading">未来计划</a></li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if(leftPos<220){
+                postToc.css({"width":leftPos-10,"margin-left":(0-leftPos)})
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">使用ONNX&#43;TensorRT部署人脸检测和关键点250fps</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年10月15日
+        </date>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>本文介绍 使用ONNX+TensorRT部署人脸检测和关键点250fps</p>
+<!-- raw HTML omitted -->
+<h1 id="onnxtensorrt250fps">使用ONNX+TensorRT部署人脸检测和关键点250fps</h1>
+<blockquote>
+<p>This article was original written by Jin Tian, welcome re-post, first come with <a href="https://jinfagang.github.io">https://jinfagang.github.io</a> . but please keep this copyright info, thanks, any question could be asked via wechat: <code>jintianiloveu</code></p>
+</blockquote>
+<p>我尽量用尽可能短的语言将本文的核心内容浓缩到文章的标题中，前段时间给大家讲解Jetson Nano的部署，我们讲到用caffe在Nano上部署yolov3，感兴趣的童鞋可以看看之前的文章，然后顺便挖了一个坑：<strong>如何部署ONNX模型</strong>, 这个问题其实分为两个部分，第一是为什么要用ONNX，第二是如何部署ONNX。本文就是来填这个坑的。</p>
+<p>TLTR，本文的核心思想包括：</p>
+<ul>
+<li>怎么才能最快速的部署ONNX模型；</li>
+<li>当今世界检测人脸和关键点最快的模型是什么？</li>
+<li>如何使用ONNX+TensorRT来让你的模型提升7倍加速</li>
+<li>我们将向大家介绍我们的新一代人脸检测+比对识别的新一代引擎，有望在GPU上跑到200fps以上，当然也将开源。</li>
+<li>如何使用C++在TensorRT上部署ONNX模型。</li>
+</ul>
+<p><img src="https://s2.ax1x.com/2019/10/15/KCAvsU.gif" alt=""></p>
+<p>上面是250fps的人脸检测模型，得益于TensorRT的加速。输入尺寸为1280x960.</p>
+<h2 id="onnx">为什么要用onnx</h2>
+<p>现在大家都喜欢用pytorch训练模型，而pytorch训练的模型转成pth，用C++推理也很难达到真正的加速效果，因为本质上最耗时的网络前向推理部分并没有太多的加速。并且采用libtorch C++推理pytorch并不是一件简单的事情，除非你的模型可以被trace。</p>
+<p>在这种情况之下，引入onnx更合理，从目前整个DL生态来看，onnx具有以下好处：</p>
+<ul>
+<li>它的模型格式比基于layer的老一代框架更加细粒度；</li>
+<li>它拥有统一化的定义，并且基于任何框架都可以推理他；</li>
+<li>它可以实现不同框架之间的互相转化。</li>
+</ul>
+<p>前段时间，我们release了一个retinaface的pytorch项目，并且我们想办法将它导出到了onnx模型，当然这期间经过一些修改，没有复杂模型的代码可以在不修改的情况下轻而易举export到onnx，关于这部分代码可以在我们的平台上找到:</p>
+<p><a href="http://manaai.cn">http://manaai.cn</a></p>
+<p>我们今天要做的事情，就是在上面的onnx模型的基础上，采用TensorRT来进行推理。先做一个简单的速度对比：</p>
+<table>
+<thead>
+<tr>
+<th>框架</th>
+<th>语言</th>
+<th>耗时(s)</th>
+<th>fps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pytorch</td>
+<td>python</td>
+<td>0.012+0.022</td>
+<td>29</td>
+</tr>
+<tr>
+<td>ONNXRuntime</td>
+<td>python</td>
+<td>0.008+0.022</td>
+<td>34</td>
+</tr>
+<tr>
+<td>TensorRT</td>
+<td>C++</td>
+<td>0.004+0.001</td>
+<td>250</td>
+</tr>
+</tbody>
+</table>
+<p>可以看到，采用TensorRT对ONNX模型加速，速度提升可以说是天囊之别。并且，采用TensorRT纯C++推理可以在语言层面获得更多的加速。<strong>我们实现的TensorRT加速的Retinaface应该是目前来讲面向GPU速度最快的检测方案，并且可以同时生成bbox和landmark，相比于MTCNN，模型更加简单，推理更加快速，准确度更高</strong>.</p>
+<p>真正落地的算法部署，毫无疑问，假如你的target是GPU，采用ONNX+TensorRT应该是目前最成熟、最优化的方案。假如你的target是一些嵌入式芯片，那么采用MNN也是可以通过onnx轻松实现CPU嵌入式端快速推理的。</p>
+<p>既然ONNX和TensorRT这么好，为什么都不用呢？为什么都还在用Python写难看的推理的代码呢？原因也很简单：</p>
+<ul>
+<li>入门太难，C++一般人玩不来；</li>
+<li>既要懂模型的每一层输入输出，又要懂TensorRT的API，至少要很熟悉。</li>
+</ul>
+<p>今天这篇教程便是教大家如何一步一步的实现TensorRT实现最快速的推理。先来看看实际TensorRT加速的效果：</p>
+<p><img src="https://s2.ax1x.com/2019/10/15/K9v2o8.png" alt=""></p>
+<p>看图片看不出啥来，看视频：</p>
+<p><img src="https://s2.ax1x.com/2019/10/15/KCAvsU.gif" alt=""></p>
+<p>效果还是非常不错的。</p>
+<h2 id="retinaface">Retinaface模型简单介绍</h2>
+<p>retinaface是Insightface做的一个动作(DeepInsight), 但是原始的只有MXNet版本，这个网络模型具有小巧精度高特点，并且它是一个带有landmark分支输出的网络，这使得该模型可以输出landmark。</p>
+<p><img src="./assets/1571119719736.png" alt="1571119719736"></p>
+<p>这个网络之所以叫做retina是因为它引入了FPN的结构和思想，使得模型在小尺度的脸上具有更好的鲁棒性。</p>
+<p>在这里我们引入一个工具：<code>sudo pip3 install onnxexplorer</code> 可以快速的查看我们的onnx模型的结构，我们需要用到的onnx模型可以从这个地方下载：http://manaai.cn/aicodes_detail3.html?id=46</p>
+<p>我们做了一些修改使得pytorch的模型可以导出到onnx，并且我们做了一些特殊的处理，使得onnx模型可以通过 <code>onnx2trt</code>转到TensorRT的engine。</p>
+<h2 id="tensorrt-c">TensorRT C++推理</h2>
+<p>接下来应该是本文的核心内容了，上面提到的 <code>onnx2trt</code> 可以通过编译 <code>https://gitub.com/onnx/onnx-tensorrt</code> 仓库，来得到 <code>onnx2trt</code> ，通过这个执行程序，可以将onnx转到trt的engine。</p>
+<p>在这里，假如你是新手，有一点需要注意：</p>
+<ul>
+<li>并不是所有的onnx都能够成功转到trt engine，除非你onnx模型里面所有的op都被支持；</li>
+<li>你需要在电脑中安装TensorRT 6.0，因为只有TensorRT6.0支持动态的输入。</li>
+</ul>
+<p>闲话不多说，假如我们拿到了trt的engine，我们如何进行推理呢？总的来说，分为3步：</p>
+<ol>
+<li>首先load你的engine，拿到一个 <code>ICudaEngine</code>, 这个是TensorRT推理的核心；</li>
+<li>你需要定位你的模型的输入和输出，有几个输入有几个输出；</li>
+<li>forward模型，然后拿到输出，对输出进行后处理。</li>
+</ol>
+<p>当然这里最核心的东西其实就两个，一个是如何导入拿到CudaEngine，第二个是比较麻烦的后处理。</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"> IBuilder<span style="color:#000;font-weight:bold">*</span> builder <span style="color:#000;font-weight:bold">=</span> createInferBuilder(gLogger);
+  assert(builder <span style="color:#000;font-weight:bold">!</span><span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">nullptr</span>);
+  nvinfer1<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>INetworkDefinition<span style="color:#000;font-weight:bold">*</span> network <span style="color:#000;font-weight:bold">=</span> builder<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>createNetwork();
+  <span style="color:#000;font-weight:bold">auto</span> parser <span style="color:#000;font-weight:bold">=</span> nvonnxparser<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>createParser(<span style="color:#000;font-weight:bold">*</span>network, gLogger);
+
+  <span style="color:#000;font-weight:bold">if</span> ( <span style="color:#000;font-weight:bold">!</span>parser<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>parseFromFile(modelFile.c_str(), <span style="color:#000;font-weight:bold">static_cast</span><span style="color:#000;font-weight:bold">&lt;</span><span style="color:#458;font-weight:bold">int</span><span style="color:#000;font-weight:bold">&gt;</span>(gLogger.reportableSeverity) ) )
+  {
+    cerr <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">Failure while parsing ONNX file</span><span style="color:#d14">&#34;</span> <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> std<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>endl;
+  }
+
+
+  IHostMemory <span style="color:#000;font-weight:bold">*</span>trtModelStream{<span style="color:#000;font-weight:bold">nullptr</span>};
+  <span style="color:#998;font-style:italic">// Build the engine
+</span><span style="color:#998;font-style:italic"></span>  builder<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>setMaxBatchSize(maxBatchSize);
+  builder<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>setMaxWorkspaceSize(<span style="color:#099">1</span> <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> <span style="color:#099">30</span>);
+
+  <span style="color:#000;font-weight:bold">if</span> (mTrtRunMode <span style="color:#000;font-weight:bold">=</span><span style="color:#000;font-weight:bold">=</span> RUN_MODE<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>INT8) {
+    std<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>cout <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">setInt8Mode</span><span style="color:#d14">&#34;</span> <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> std<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>endl;
+    <span style="color:#000;font-weight:bold">if</span> (<span style="color:#000;font-weight:bold">!</span>builder<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>platformHasFastInt8())
+      std<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>cout <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">Notice: the platform do not has fast for int8</span><span style="color:#d14">&#34;</span> <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> std<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>endl;
+<span style="color:#998;font-style:italic">//    builder-&gt;setInt8Mode(true);
+</span><span style="color:#998;font-style:italic"></span><span style="color:#998;font-style:italic">//    builder-&gt;setInt8Calibrator(calibrator);
+</span><span style="color:#998;font-style:italic"></span>    cerr <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">int8 mode not supported for now.</span><span style="color:#d14">\n</span><span style="color:#d14">&#34;</span>;
+  } <span style="color:#000;font-weight:bold">else</span> <span style="color:#900;font-weight:bold">if</span> (mTrtRunMode <span style="color:#000;font-weight:bold">=</span><span style="color:#000;font-weight:bold">=</span> RUN_MODE<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>FLOAT16) {
+    std<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>cout <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">setFp16Mode</span><span style="color:#d14">&#34;</span> <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> std<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>endl;
+    <span style="color:#000;font-weight:bold">if</span> (<span style="color:#000;font-weight:bold">!</span>builder<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>platformHasFastFp16())
+      std<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>cout <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">Notice: the platform do not has fast for fp16</span><span style="color:#d14">&#34;</span> <span style="color:#000;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">&lt;</span> std<span style="color:#000;font-weight:bold">:</span><span style="color:#000;font-weight:bold">:</span>endl;
+    builder<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>setFp16Mode(<span style="color:#0086b3">true</span>);
+  }
+
+  ICudaEngine<span style="color:#000;font-weight:bold">*</span> engine <span style="color:#000;font-weight:bold">=</span> builder<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>buildCudaEngine(<span style="color:#000;font-weight:bold">*</span>network);
+  assert(engine);
+  <span style="color:#998;font-style:italic">// we can destroy the parser
+</span><span style="color:#998;font-style:italic"></span>  parser<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>destroy();
+  <span style="color:#998;font-style:italic">// serialize the engine, then close everything down
+</span><span style="color:#998;font-style:italic"></span>  trtModelStream <span style="color:#000;font-weight:bold">=</span> engine<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>serialize();
+  trtModelStream<span style="color:#000;font-weight:bold">-</span><span style="color:#000;font-weight:bold">&gt;</span>destroy();
+  InitEngine();
+</code></pre></td></tr></table>
+</div>
+</div><p>这个是我们维护的 <code>onnx_trt_engine</code>的一部分，这段代码的作用是直接将你之前生成的trt engine，导入到你的ICudaEngine之中。大家如果需要完整的code，可以在我们的MANA平台上转到并下载：</p>
+<p><a href="http://manaai.cn">http://manaai.cn</a></p>
+<p>大家可以看到，假如你想对模型进行进一步的加速，实际上也是在这上面进行。当你拿到你的 <code>iCudaEngine</code>之后，剩下的事情就是根据你的model的output name拿到对应的输出。整个过程其实还是可以一气呵成的，唯一可能复杂一点的是你需要动态allocate对应大小size的data。</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"> <span style="color:#000;font-weight:bold">auto</span> out1 <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">new</span> <span style="color:#458;font-weight:bold">float</span>[bufferSize[<span style="color:#099">1</span>] <span style="color:#000;font-weight:bold">/</span> <span style="color:#000;font-weight:bold">sizeof</span>(<span style="color:#458;font-weight:bold">float</span>)];
+  <span style="color:#000;font-weight:bold">auto</span> out2 <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">new</span> <span style="color:#458;font-weight:bold">float</span>[bufferSize[<span style="color:#099">2</span>] <span style="color:#000;font-weight:bold">/</span> <span style="color:#000;font-weight:bold">sizeof</span>(<span style="color:#458;font-weight:bold">float</span>)];
+  <span style="color:#000;font-weight:bold">auto</span> out3 <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">new</span> <span style="color:#458;font-weight:bold">float</span>[bufferSize[<span style="color:#099">3</span>] <span style="color:#000;font-weight:bold">/</span> <span style="color:#000;font-weight:bold">sizeof</span>(<span style="color:#458;font-weight:bold">float</span>)];
+
+  cudaStream_t stream;
+  CHECK(cudaStreamCreate(<span style="color:#000;font-weight:bold">&amp;</span>stream));
+  CHECK(cudaMemcpyAsync(buffers[<span style="color:#099">0</span>], input, bufferSize[<span style="color:#099">0</span>], cudaMemcpyHostToDevice, stream));
+<span style="color:#998;font-style:italic">//  context.enqueue(batchSize, buffers, stream,nullptr);
+</span><span style="color:#998;font-style:italic"></span>  context.enqueue(<span style="color:#099">1</span>, buffers, stream, <span style="color:#000;font-weight:bold">nullptr</span>);
+
+  CHECK(cudaMemcpyAsync(out1, buffers[<span style="color:#099">1</span>], bufferSize[<span style="color:#099">1</span>], cudaMemcpyDeviceToHost, stream));
+  CHECK(cudaMemcpyAsync(out2, buffers[<span style="color:#099">2</span>], bufferSize[<span style="color:#099">2</span>], cudaMemcpyDeviceToHost, stream));
+  CHECK(cudaMemcpyAsync(out3, buffers[<span style="color:#099">3</span>], bufferSize[<span style="color:#099">3</span>], cudaMemcpyDeviceToHost, stream));
+  cudaStreamSynchronize(stream);
+
+  <span style="color:#998;font-style:italic">// release the stream and the buffers
+</span><span style="color:#998;font-style:italic"></span>  cudaStreamDestroy(stream);
+  CHECK(cudaFree(buffers[<span style="color:#099">0</span>]));
+  CHECK(cudaFree(buffers[<span style="color:#099">1</span>]));
+  CHECK(cudaFree(buffers[<span style="color:#099">2</span>]));
+  CHECK(cudaFree(buffers[<span style="color:#099">3</span>]));
+</code></pre></td></tr></table>
+</div>
+</div><p>这是如何从TensorRT推理的结果转到我们的CPU上来，并且通过Async来同步数据，最终你拿到的数据将在你事先定义好的buffer里面，再进行后处理即可。</p>
+<p>由于C++代码过于庞大和复杂，这些代码将会开源到我们的MANA AI平台。当然我们花费了很多力气来编写教程，并且提供源码，如果你对AI感兴趣，而缺乏一个好的学习群体和导师，不妨加入我们的会员计划，我们是一个致力于打造工业级前沿黑科技的AI学习者群体。</p>
+<p>我们pytorch的训练代码可以在这里找到：</p>
+<p><a href="http://manaai.cn/aicodes_detail3.html?id=46">http://manaai.cn/aicodes_detail3.html?id=46</a></p>
+<p>TensorRT部署完整的代码可以在这里找到：</p>
+<p><a href="http://manaai.cn/aicodes_detail3.html?id=48">http://manaai.cn/aicodes_detail3.html?id=48</a></p>
+<h2 id="heading">未来计划</h2>
+<p>我们看到，随着AI技术的不断成熟，大家已经不局限于用简单的python来编写古老的代码，我们致力于寻找更前沿的AI部署方案，TensorRT就是其中的一种，我们发现，通过对网络模型本身的思考优化、通过对我们网络计算框架的思考和优化、通过对编写网络推理语言和算法本身的思考和优化，构建了一道深不可测的技术瓶颈和壁垒。未来大家可能会看到，为什么你的MaskRCNN只有10fps，而别人的可以在全尺寸（1280p）下跑到35fps？</p>
+<p>方寸之间，尽显功夫。</p>
+<p>未来我们将继续在onnx-tensorrt的技术路线为大家奉献更加高质量的代码，我们的下一个目标是采用ONNX推理，并且用TensorRT加速MaskRCNN。Detectron2都发布了，这个还会远吗？Instance segmentation 和全景分割的Realtime inference是我们的终极目标！</p>
+<p>其实看完这篇文章，建议大家可以做的事情：</p>
+<ol>
+<li>把我们的TensorRT版本retinaface部署到Jetson Nano上，你可以得到一个至少在30fps的人脸检测模型；</li>
+<li>你可以尝试用Retinaface重新训练一个手和关键点的检测，实现手的姿态检测。</li>
+</ol>
+<p>当然，欢迎大家评论和转发，我们有机会也会开源我们踩坑之后的收获。</p>
+<blockquote>
+<p>我们为维护、编写、创造这些代码花费了许多宝贵的时间，同时维护他们也需要海量的云平台，我们致力于帮助更多的初学者、中级学者、老司机提供完善的AI代码部署平台，如果你对AI感兴趣，可以通过我们的论坛来交流。</p>
+<p>另外我们开通了Slack群，欢迎大家来交流：</p>
+<p><a href="https://join.slack.com/t/manaai/shared_invite/enQtNzg5NjU2MTYyNTY2LWZjMzQ0NGRiYTZiMTg3ZDUyYzRiNmM4YzVjODZhNTE3NTY0MWRmNTJlZTJiZjIzOGVmZmQ3ODcxNzk4NWEyZDQ">https://join.slack.com/t/manaai/shared_invite/enQtNzg5NjU2MTYyNTY2LWZjMzQ0NGRiYTZiMTg3ZDUyYzRiNmM4YzVjODZhNTE3NTY0MWRmNTJlZTJiZjIzOGVmZmQ3ODcxNzk4NWEyZDQ</a></p>
+</blockquote>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://jintian93.github.io">金天</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://jintian93.github.io/post/2019_10_15_12_%E4%BD%BF%E7%94%A8ONNX&#43;TensorRT%E9%83%A8%E7%BD%B2%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E5%92%8C%E5%85%B3%E9%94%AE%E7%82%B9250fps/">https://jintian93.github.io/post/2019_10_15_12_%E4%BD%BF%E7%94%A8ONNX&#43;TensorRT%E9%83%A8%E7%BD%B2%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E5%92%8C%E5%85%B3%E9%94%AE%E7%82%B9250fps/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/2019_10_08_15_ONNXRuntime%E9%87%87%E7%94%A8TensorRT%E5%90%8E%E7%AB%AF%E5%BF%AB%E9%80%9F%E6%8E%A8%E7%90%86/">ONNXRuntime采用TensorRT后端快速推理</a></li>
+        
+        <li><a href="/post/2019_09_27_15_ONNX%E9%87%8C%E9%9D%A2%E7%9A%84%E5%85%83%E8%BF%90%E7%AE%97/">ONNX里面的元运算</a></li>
+        
+        <li><a href="/post/2019_09_26_10_maskrcnn-benchmark%E8%BD%AConnx%E5%86%8D%E8%BD%ACTensorRT%E5%AE%9E%E5%BD%95/">maskrcnn-benchmark转onnx再转TensorRT实录</a></li>
+        
+        <li><a href="/post/2019_09_19_15_pytorch%E9%87%8C%E9%9D%A2%E7%9A%84torch.gather%E6%93%8D%E4%BD%9C/">pytorch里面的torch.gather操作</a></li>
+        
+        <li><a href="/post/2019_09_12_11_FOTS%E5%92%8CROIRotate%E4%BB%A5%E5%8F%8A%E4%BB%BF%E5%B0%84%E5%8F%98%E6%8D%A2/">FOTS和ROIRotate以及仿射变换</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "jintian93/coment-for-blog"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://jintian93.github.io/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://jintian93.github.io">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_12_02_15_%E6%88%91%E7%9A%842021%E7%9A%84FLAG%E8%AF%95%E8%A1%8C%E7%89%88/" title="2020FLAG试行版">2020FLAG试行版</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_11_28_20_%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E6%95%99%E4%BD%A0%E8%AF%AD%E9%9F%B3%E5%90%88%E6%88%90%E5%85%A5%E9%97%A8%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AA%E4%B8%AD%E6%96%87%E8%AF%AD%E9%9F%B3tts/" title="一篇文章教你语音合成入门，训练一个中文语音tts">一篇文章教你语音合成入门，训练一个中文语音tts</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_12_02_17_%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%80%E8%BF%91%E7%9A%84%E8%A7%84%E5%88%92%E5%92%8C%E6%89%93%E7%AE%97/" title="记录一些最近的规划和打算">记录一些最近的规划和打算</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_11_07_22_JetsonNano2GB%E7%BC%96%E8%AF%91Yolov5%E5%B9%B6%E7%94%A8TensorRT%E5%8A%A0%E9%80%9F%E6%95%99%E7%A8%8B/" title="JetsonNano2GB编译Yolov5并用TensorRT加速教程">JetsonNano2GB编译Yolov5并用TensorRT加速教程</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_10_26_22_Jetson_Nano_2GB%E5%85%A8%E6%96%B0%E6%B5%8B%E8%AF%84/" title="Jetson Nano 2GB全新测评">Jetson Nano 2GB全新测评</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_09_27_12_UltraFastYoloV5%E5%8F%91%E5%B8%83%E5%9F%BA%E4%BA%8E%E5%89%AA%E6%9E%9D%E6%8A%80%E6%9C%AF%E7%9A%84%E6%A8%A1%E5%9E%8B%E5%8E%8B%E7%BC%A93ms%E6%8E%A8%E7%90%86%E7%9A%84YoloV5mAP60&#43;/" title="UltraFastYoloV5发布!基于剪枝技术的模型压缩,3ms推理的YoloV5mAP60&#43;!">UltraFastYoloV5发布!基于剪枝技术的模型压缩,3ms推理的YoloV5mAP60&#43;!</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_09_14_11_%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%90%AD%E5%BB%BAYoloV5%E6%A8%A1%E5%9E%8B%E5%B9%B6%E8%AE%AD%E7%BB%83%E6%95%99%E7%A8%8B/" title="从零开始搭建YoloV5模型并训练教程">从零开始搭建YoloV5模型并训练教程</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_08_31_12_%E8%B6%85%E5%BF%AB%E7%9A%84%E8%BD%A6%E9%81%93%E7%BA%BF%E6%A3%80%E6%B5%8BTensorRT%E9%83%A8%E7%BD%B2120fps/" title="超快的车道线检测TensorRT部署:120fps">超快的车道线检测TensorRT部署:120fps</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_08_14_17_Pytorch%E7%BD%91%E7%BB%9C%E5%8E%8B%E7%BC%A9%E7%B3%BB%E5%88%97%E6%95%99%E7%A8%8B%E4%B8%80Prune%E4%BD%A0%E7%9A%84%E6%A8%A1%E5%9E%8B/" title="Pytorch网络压缩系列教程一:Prune你的模型">Pytorch网络压缩系列教程一:Prune你的模型</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_07_31_14_%E5%85%A8%E7%BD%91%E6%9C%80%E5%85%A8%E7%9B%98%E7%82%B9%E9%82%A3%E4%BA%9B%E5%9B%BE%E5%83%8F%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%B9%BF%E6%96%B9%E5%BC%8FMosiacMixUpCutMix%E7%AD%89./" title="全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.">全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="http://manaai.cn" title="【2020】中秋特惠，神力平台终身会员优惠85折！立即开通" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1_rYHo7P2gK0jSZPxXXacQpXa-690-388.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="助力产业智慧升级，云服务器首年88元起，更有千元代金券礼包免费领！" target="_blank" style="color:red">
+                
+                    <img src="https://upload-dianshi-1255598498.file.myqcloud.com/345-7c71532bd4935fbdd9a67c1a71e577b1767b805c.200%E7%89%88%E6%9C%ACB.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="【渠道专享低折扣】11月特惠 限时2折" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1hblJl7Y2gK0jSZFgXXc5OFXa-750-400.jpg">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="http://manaai.cn" title="神力AI平台">神力AI平台</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="http://zhuanlan.zhihu.com/ai-man" title="【知乎专栏】人工智能从入门到逆天杀神">Android Gradle权威指南</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://jintian93.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+    <footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://jintian93.github.io">金天的个人博客 By 金天</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+    <script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+</body>
+
+</html>
