@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等. | 金天的个人博客</title>
+    <meta property="og:title" content="全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等. - 金天的个人博客">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2020-07-31T14:29:43&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2020-07-31T14:29:43&#43;08:00'>
+        
+    <meta name="Keywords" content="golang,go语言,go语言笔记,金天,人工智能,java,android,博客,项目管理,python,软件架构,公众号,小程序,AI项目管理">
+    <meta name="description" content="全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.">
+        
+    <meta name="author" content="金天">
+    <meta property="og:url" content="https://jintian93.github.io/post/2020_07_31_14_%E5%85%A8%E7%BD%91%E6%9C%80%E5%85%A8%E7%9B%98%E7%82%B9%E9%82%A3%E4%BA%9B%E5%9B%BE%E5%83%8F%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%B9%BF%E6%96%B9%E5%BC%8FMosiacMixUpCutMix%E7%AD%89./">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "238864368",
+        enable_page_level_ads: true
+    });
+    </script>
+    
+
+
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://jintian93.github.io">
+                        金天的个人博客
+                    </a>
+                
+                <p class="description">专注于AI算法研发与落地应用，无人驾驶，模型压缩与加速，边缘端侧推理，AI项目管理与核心技术输出，腾讯自动驾驶专家</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://jintian93.github.io">首页</a>
+                    
+                    <a  href="https://jintian93.github.io/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://jintian93.github.io/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://jintian93.github.io/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#mixup">MixUp</a></li>
+    <li><a href="#mosiac">Mosiac</a></li>
+    <li><a href="#cutmix">CutMix</a></li>
+    <li><a href="#fmix">FMix</a></li>
+    <li><a href="#heading">更多</a></li>
+    <li><a href="#heading-1">往期文章</a></li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if(leftPos<220){
+                postToc.css({"width":leftPos-10,"margin-left":(0-leftPos)})
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2020年7月31日
+        </date>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>本文介绍 全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.</p>
+<!-- raw HTML omitted -->
+<h1 id="mosiacmixupcutmix">全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.</h1>
+<blockquote>
+<p>本文由林大佬原创，转载请注明出处，来自腾讯、阿里等一线AI算法工程师组成的QQ交流群欢迎你的加入: 1037662480</p>
+</blockquote>
+<p>相信很多朋友在面对各种各样的数据增广方式时, 一定和小林一样, 不知道具体是个什么东西, 也不知道这些增广方式到底适用于什么场景, 什么数据集有效, 什么数据集无效. 今天我们就来对目前学术界用的比较多的增广方法来做一个总结, 希望给大家抛砖引玉.</p>
+<p>我们先从比较简单, 逐渐复杂的方式来和大家讲解. 我们会在文章最后总结这些不同数据增广方式对最终结果的可能影响, 以及他们的优缺点, 对于这些方法比较熟悉的同学可以直接跳转到文末, 同时非常欢迎大家对于不对的见解提出宝贵的修改意见.</p>
+<h2 id="mixup">MixUp</h2>
+<p>MixUp来自于论文: <em><strong>*mixup*</strong></em><em><strong>*：BEYOND EMPIRICAL RISK MINIMIZATION*</strong></em>.  传送门: <a href="https://arxiv.org/pdf/1710.09412.pdf">https://arxiv.org/pdf/1710.09412.pdf</a> 论文来自于CVPR2018:</p>
+<p><img src="https://i.loli.net/2020/07/31/F1eNWtcaEQlxPJw.png" alt="image-20200731143529586"></p>
+<p>大家也可以看看关于这个方法更加具体的知乎讨论: <a href="https://www.zhihu.com/question/67472285/answer/256651581">https://www.zhihu.com/question/67472285/answer/256651581</a> , 这篇论文的原作者也现身为大家答疑.</p>
+<p>这里我们主要说一下我们的看法. MixUp在分类任务中, 解决的问题主要是让模型更加鲁棒性的区分很相近的类别, 比如我们一个batch一个batch去训练的时候, 猫对应的label就是猫, 狗就是狗, 完全只靠看猫和狗来区分他们. 那么在实际情况中, 如果出现一个样本, 它长得既像猫又像狗, 但实际上这是一条狗, 网络可能就懵逼了.</p>
+<p>MixUp采用配对的方式进行训练, 通过混合两个甚至是多个样本的分布, 同时加上对应的标签来训练, 用论文原文的话来说就是:</p>
+<blockquote>
+<p>In essence, mixup trains a neural network on convex combinations of pairs of examples and their labels.</p>
+</blockquote>
+<p>这其实就是MixUp最本生的思想.</p>
+<p><img src="https://i.loli.net/2020/07/31/S5Dwncg9FBp2VzY.png" alt="image-20200731144739580"></p>
+<p>至于怎么混合也很简单, 就是把这个Pair重新组合成为一个样本.</p>
+<p>那么这个简单的方式效果咋样呢? 以及它用在目标检测里面是否可行呢?</p>
+<p><img src="https://i.loli.net/2020/07/31/huFLx2jBaTPHSJt.png" alt="image-20200731145805746"></p>
+<p>从效果上来看, 没有任何花里胡哨的东西, 就可以将top1的错误率降低0.2-0.3个百分点. 还是很有用的!</p>
+<p>后台有一些小伙伴问小林, 这个MixUp看起来是什么样的? 借用知乎大佬的一些资料, 它大概看起来像这样:</p>
+<p><img src="https://i.loli.net/2020/07/31/fjyxSXTao6kECAN.png" alt="image-20200731150048909"></p>
+<p>就像是我们经常在电影里面看到的那种淡入淡出的效果差不多. 那么自然而然的, 对于目标检测它大概就像是这样:</p>
+<p><img src="https://i.loli.net/2020/07/31/b3mJVEtXMyKukIe.png" alt="image-20200731150131748"></p>
+<p>图源自Aws官方PPT.</p>
+<p>所以当你的数据集类别比较多的时候, 用这种方式也许可以有效的区分一些难例, 但是并非所有的情况都能用MixUp, 至少在只有一个类别的情况下, 我认为效果不会是很有效.</p>
+<h2 id="mosiac">Mosiac</h2>
+<p>这个数据增广方式, 出名于Yolov4, 也是来自于战斗民族的一种增广方法. 它通过排列四张图片, 以及对应的box来实现数据的增广方式.</p>
+<p><img src="https://i.loli.net/2020/07/31/4ishcmx7M5uvrXt.png" alt="image-20200731150613287"></p>
+<p>比如我们在一个安检数据集上增加这个 Mosiac方式，这种方式可以增加单张图片的丰富度, 同时也能更好的让网络去定位每一个类别的位置. 它背后的数学基础并没有太复杂, 只是这个东西它好像确实work, 至少在coco上是如此.</p>
+<p>但小林最近在将这个技术应用于一些其他数据集的时候发现, 并不是所有的数据集都能用这个方式. 带来的主要问题是, 如果你的数据集列别比较少, 依赖于空间信息, 以及大小比较小的时候, 可能要考虑random的去enable Mosiac, 而不是将所有的数据都应用这个增广方式.</p>
+<h2 id="cutmix">CutMix</h2>
+<p>cutMix用一张图来直观的对比:</p>
+<p><img src="https://i.loli.net/2020/08/20/7A2xv956Lf8jQuI.png" alt="image-20200820180301237"></p>
+<p>可以看到, CutMix就是把一个物体抠出来, 粘贴到另一张图上去.</p>
+<p>这个增强的效果怎么样呢?从分别的角度来说, 貌似对于分类有一些增长, 但是, 问题在于, 你CutMix的方式似乎有讲究, 图片中只是看到了猫头和狗尾巴, 万一反过来了呢? 还应该分类为什么?</p>
+<p>对于CutMix的数学推导和更多的实验, 大家可以查看原论文:https://arxiv.org/pdf/1905.04899v2.pdf</p>
+<h2 id="fmix">FMix</h2>
+<p>FMIX是2020年才出来的, 最新的数据增强方法. 说道FMIX, 我们有必要理解一下为什么CutMix它work. 理论上来说, 因为CutMix引入了一个蒙版的效果, 每个神经元在编码的时候会产生派生的意义, 这就好比人眼去看一个似是而非的东西, 这就会迫使模型去学习局部一致性, 比如说, 前面马路有一滩水, 水里面有一个人, 那么这个分类是分类为水还是人呢? 通过这么一个数据的增强, 模型学会了在大环境下判断这个物体, 它是一滩水, 而不是一个people.</p>
+<p>那么FMix更强的地方在哪里呢?</p>
+<p>我可以这么说吧, CutMix是一个PS技术很差的人把猫狗合在一起, 直接就是矩形框粘贴, 而Fmix是一个技术高超的PSer. 它可以通过融合通道颜色来完美的把图片剪切过去.</p>
+<p><img src="https://i.loli.net/2020/08/20/M9vgT14AUzXWRkL.png" alt="image-20200820180914737"></p>
+<p>这期的技术分享就到这里, 关于计算机视觉与深度学习技术的更多干货, 欢迎关注我们的公众号和专栏!</p>
+<h2 id="heading">更多</h2>
+<p><img src="https://i.loli.net/2020/08/20/PmYlvIAgz93LiUF.png" alt="image-20200820181257044"></p>
+<p>如果你想学习人工智能，对前沿的AI技术比较感兴趣，可以加入我们的知识星球，获取第一时间资讯，前沿学术动态，业界新闻等等！你的支持将会鼓励我们更频繁的创作，我们也会帮助你开启更深入的深度学习之旅！</p>
+<p><img src="https://i.loli.net/2020/05/15/XLbjVFpS2PqJ75x.png" alt="image-20200515153654923"></p>
+<h2 id="heading-1">往期文章</h2>
+<p><a href="https://zhuanlan.zhihu.com/p/165009477">https://zhuanlan.zhihu.com/p/165009477</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/149398749">https://zhuanlan.zhihu.com/p/149398749</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/147622974">https://zhuanlan.zhihu.com/p/147622974</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/144727162">https://zhuanlan.zhihu.com/p/144727162</a></p>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://jintian93.github.io">金天</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://jintian93.github.io/post/2020_07_31_14_%E5%85%A8%E7%BD%91%E6%9C%80%E5%85%A8%E7%9B%98%E7%82%B9%E9%82%A3%E4%BA%9B%E5%9B%BE%E5%83%8F%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%B9%BF%E6%96%B9%E5%BC%8FMosiacMixUpCutMix%E7%AD%89./">https://jintian93.github.io/post/2020_07_31_14_%E5%85%A8%E7%BD%91%E6%9C%80%E5%85%A8%E7%9B%98%E7%82%B9%E9%82%A3%E4%BA%9B%E5%9B%BE%E5%83%8F%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%B9%BF%E6%96%B9%E5%BC%8FMosiacMixUpCutMix%E7%AD%89./</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/2020_07_30_14_%E7%AA%81%E5%8F%91SipMask%E5%8F%91%E5%B8%83%E5%9F%BA%E4%BA%8E%E7%A9%BA%E9%97%B4%E4%BF%A1%E6%81%AF%E4%BF%9D%E5%AD%98%E5%AE%9E%E6%97%B6%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E7%AE%97%E6%B3%95%E6%95%88%E6%9E%9C%E8%BF%9C%E8%B6%85MaskRCNN/">突发!SipMask发布!基于空间信息保存实时实例分割算法,效果远超MaskRCNN!</a></li>
+        
+        <li><a href="/post/2020_07_29_12_%E4%B8%AD%E6%96%87OCR%E5%85%89%E5%AD%A6%E5%AD%97%E7%AC%A6%E6%A3%80%E6%B5%8B%E4%B8%8E%E8%AF%86%E5%88%AB%E4%BA%8C%E7%94%A8%E6%9C%80%E5%85%88%E8%BF%9B%E7%9A%84DBNet%E8%AE%AD%E7%BB%83%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E9%9B%86%E6%A3%80%E6%B5%8B%E4%B8%AD%E6%96%87%E6%96%87%E6%9C%AC/">中文OCR光学字符检测与识别二:用最先进的DBNet训练自己的数据集检测中文文本</a></li>
+        
+        <li><a href="/post/2020_07_24_14_%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E5%A6%82%E4%BD%95%E7%94%A8SOLOV2%E8%AE%AD%E7%BB%83%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E9%9B%86/">手把手教你如何用SOLOV2训练自己的数据集</a></li>
+        
+        <li><a href="/post/2020_07_17_15_OCR%E6%96%87%E6%9C%AC%E8%AF%86%E5%88%AB%E6%95%99%E7%A8%8B%E7%B3%BB%E5%88%97%E4%B8%80CRNN%E7%9A%84%E6%96%87%E6%9C%AC%E6%A3%80%E6%B5%8B%E8%AF%86%E5%88%AB/">OCR文本识别教程系列一:CRNN的文本检测识别</a></li>
+        
+        <li><a href="/post/2020_07_09_17_Linux%E7%B3%BB%E7%BB%9F%E4%B8%8B%E4%BB%8E%E7%99%BE%E5%BA%A6%E4%BA%91%E5%BF%AB%E9%80%9F%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6%E7%9A%84%E5%A7%BF%E5%8A%BF/">Linux系统下从百度云快速下载文件的姿势</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "jintian93/coment-for-blog"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://jintian93.github.io/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://jintian93.github.io">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_11_28_20_%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E6%95%99%E4%BD%A0%E8%AF%AD%E9%9F%B3%E5%90%88%E6%88%90%E5%85%A5%E9%97%A8%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AA%E4%B8%AD%E6%96%87%E8%AF%AD%E9%9F%B3tts/" title="一篇文章教你语音合成入门，训练一个中文语音tts">一篇文章教你语音合成入门，训练一个中文语音tts</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_11_07_22_JetsonNano2GB%E7%BC%96%E8%AF%91Yolov5%E5%B9%B6%E7%94%A8TensorRT%E5%8A%A0%E9%80%9F%E6%95%99%E7%A8%8B/" title="JetsonNano2GB编译Yolov5并用TensorRT加速教程">JetsonNano2GB编译Yolov5并用TensorRT加速教程</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_10_26_22_Jetson_Nano_2GB%E5%85%A8%E6%96%B0%E6%B5%8B%E8%AF%84/" title="Jetson Nano 2GB全新测评">Jetson Nano 2GB全新测评</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_09_27_12_UltraFastYoloV5%E5%8F%91%E5%B8%83%E5%9F%BA%E4%BA%8E%E5%89%AA%E6%9E%9D%E6%8A%80%E6%9C%AF%E7%9A%84%E6%A8%A1%E5%9E%8B%E5%8E%8B%E7%BC%A93ms%E6%8E%A8%E7%90%86%E7%9A%84YoloV5mAP60&#43;/" title="UltraFastYoloV5发布!基于剪枝技术的模型压缩,3ms推理的YoloV5mAP60&#43;!">UltraFastYoloV5发布!基于剪枝技术的模型压缩,3ms推理的YoloV5mAP60&#43;!</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_09_14_11_%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%90%AD%E5%BB%BAYoloV5%E6%A8%A1%E5%9E%8B%E5%B9%B6%E8%AE%AD%E7%BB%83%E6%95%99%E7%A8%8B/" title="从零开始搭建YoloV5模型并训练教程">从零开始搭建YoloV5模型并训练教程</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_08_31_12_%E8%B6%85%E5%BF%AB%E7%9A%84%E8%BD%A6%E9%81%93%E7%BA%BF%E6%A3%80%E6%B5%8BTensorRT%E9%83%A8%E7%BD%B2120fps/" title="超快的车道线检测TensorRT部署:120fps">超快的车道线检测TensorRT部署:120fps</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_08_14_17_Pytorch%E7%BD%91%E7%BB%9C%E5%8E%8B%E7%BC%A9%E7%B3%BB%E5%88%97%E6%95%99%E7%A8%8B%E4%B8%80Prune%E4%BD%A0%E7%9A%84%E6%A8%A1%E5%9E%8B/" title="Pytorch网络压缩系列教程一:Prune你的模型">Pytorch网络压缩系列教程一:Prune你的模型</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_07_31_14_%E5%85%A8%E7%BD%91%E6%9C%80%E5%85%A8%E7%9B%98%E7%82%B9%E9%82%A3%E4%BA%9B%E5%9B%BE%E5%83%8F%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%B9%BF%E6%96%B9%E5%BC%8FMosiacMixUpCutMix%E7%AD%89./" title="全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.">全网最全:盘点那些图像数据增广方式Mosiac,MixUp,CutMix等.</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_07_30_14_%E7%AA%81%E5%8F%91SipMask%E5%8F%91%E5%B8%83%E5%9F%BA%E4%BA%8E%E7%A9%BA%E9%97%B4%E4%BF%A1%E6%81%AF%E4%BF%9D%E5%AD%98%E5%AE%9E%E6%97%B6%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E7%AE%97%E6%B3%95%E6%95%88%E6%9E%9C%E8%BF%9C%E8%B6%85MaskRCNN/" title="突发!SipMask发布!基于空间信息保存实时实例分割算法,效果远超MaskRCNN!">突发!SipMask发布!基于空间信息保存实时实例分割算法,效果远超MaskRCNN!</a>
+    </li>
+    
+    <li>
+        <a href="https://jintian93.github.io/post/2020_07_29_12_%E4%B8%AD%E6%96%87OCR%E5%85%89%E5%AD%A6%E5%AD%97%E7%AC%A6%E6%A3%80%E6%B5%8B%E4%B8%8E%E8%AF%86%E5%88%AB%E4%BA%8C%E7%94%A8%E6%9C%80%E5%85%88%E8%BF%9B%E7%9A%84DBNet%E8%AE%AD%E7%BB%83%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E9%9B%86%E6%A3%80%E6%B5%8B%E4%B8%AD%E6%96%87%E6%96%87%E6%9C%AC/" title="中文OCR光学字符检测与识别二:用最先进的DBNet训练自己的数据集检测中文文本">中文OCR光学字符检测与识别二:用最先进的DBNet训练自己的数据集检测中文文本</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="http://manaai.cn" title="【2020】中秋特惠，神力平台终身会员优惠85折！立即开通" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1_rYHo7P2gK0jSZPxXXacQpXa-690-388.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="助力产业智慧升级，云服务器首年88元起，更有千元代金券礼包免费领！" target="_blank" style="color:red">
+                
+                    <img src="https://upload-dianshi-1255598498.file.myqcloud.com/345-7c71532bd4935fbdd9a67c1a71e577b1767b805c.200%E7%89%88%E6%9C%ACB.jpg">
+                
+            </a>
+        </li>
+        
+        <li>
+            <a href="http://manaai.cn" title="【渠道专享低折扣】11月特惠 限时2折" target="_blank" style="color:red">
+                
+                    <img src="https://img.alicdn.com/tfs/TB1hblJl7Y2gK0jSZFgXXc5OFXa-750-400.jpg">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="http://manaai.cn" title="神力AI平台">神力AI平台</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="http://zhuanlan.zhihu.com/ai-man" title="【知乎专栏】人工智能从入门到逆天杀神">Android Gradle权威指南</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://jintian93.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+    <footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://jintian93.github.io">金天的个人博客 By 金天</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+    <script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+</body>
+
+</html>
